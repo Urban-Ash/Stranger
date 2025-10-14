@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1>Stranger · OSINT 信息检索平台</h1>
+<h1>Stranger · OSINT OSINT information retrieval platform</h1>
 
 [中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md)
 
@@ -23,14 +23,23 @@
 - Validation queries: phone region, QQ profile, Weibo UID home info, ID-card parsing.
 - AI confidence: assess and optionally write back to the main table.
 - Health & metrics: unified endpoints for monitoring.
+- Security: CORS (`flask-cors`, `CORS_ORIGINS` config), compression (`Flask-Compress`), rate limiting (`flask-limiter`, `RATE_LIMIT` config, default `60 per minute`). When authentication is enabled (`AUTH_ENABLED=true`), login is required for non-static routes.
 
 ## Screens & UX
 - PWA-ready: install to desktop, offline manifest & service worker.
 - Dark/Light themes and language switching from the UI.
 - Accessible components with keyboard navigation and ARIA labels.
 
+## Screenshots
+
 <div align="center">
+
+<img src="docs/screenshots/stranger-home-zh.png" alt="Stranger Home (Chinese UI)" width="720" />
+
+<br/>
+
 <img src="docs/screenshots/stranger-home-en.png" alt="Stranger Home (English UI)" width="720" />
+
 </div>
 
 ## Architecture
