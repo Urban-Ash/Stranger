@@ -147,7 +147,7 @@ const dictionaries = {
   },
   en: {
     app_title: 'Stranger',
-    subtitle: 'Social engineering info search platform',
+    subtitle: 'OSINT information retrieval platform',
     theme_toggle_aria: 'Toggle theme',
     theme_toggle_title: 'Toggle theme',
     search_placeholder: 'Type keywords...',
@@ -433,7 +433,7 @@ const dictionaries = {
   },
   ja: {
     app_title: 'Stranger',
-    subtitle: 'ソーシャルエンジニアリング情報検索プラットフォーム',
+    subtitle: 'OSINT情報検索プラットフォーム',
     theme_toggle_aria: 'テーマを切り替え',
     theme_toggle_title: 'テーマを切り替え',
     search_placeholder: 'キーワードを入力...',
@@ -577,7 +577,7 @@ const dictionaries = {
   ,
   ko: {
     app_title: 'Stranger',
-    subtitle: '사회공학 정보 검색 플랫폼',
+    subtitle: 'OSINT 정보 검색 플랫폼',
     theme_toggle_aria: '테마 전환',
     theme_toggle_title: '테마 전환',
     search_placeholder: '키워드를 입력하세요...',
