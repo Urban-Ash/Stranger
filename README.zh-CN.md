@@ -1,12 +1,15 @@
-# Stranger
-注：本项目完全由 AI 编写。
+<div align="center">
 
-<p align="center">
-  <img src="https://img.shields.io/badge/AI%20Authored-100%25-blueviolet?style=for-the-badge" alt="纯 AI 编写 100%" />
-  
-</p>
+<h1>Stranger · OSINT 信息检索平台</h1>
 
-一个前后端一体化的 OSINT 信息聚合与检索系统。支持多语言 UI、数据维护、来源详情查看、验证查询与可选的 AI 置信度评估。
+<img src="https://img.shields.io/badge/AI%20Authored-100%25-blueviolet?style=flat" alt="纯 AI 编写 100%" />
+<img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python" alt="Python" />
+<img src="https://img.shields.io/badge/Flask-2.x-000?logo=flask" alt="Flask" />
+<img src="https://img.shields.io/badge/PostgreSQL-13%2B-336791?logo=postgresql" alt="PostgreSQL" />
+
+<p>一个前后端一体化的 OSINT 信息聚合与检索系统，支持多语言 UI、数据源模板、验证工具与可选 AI 置信度评估。</p>
+
+</div>
 
 ## 特性
 - 智能搜索：自动识别关键词类型（姓名/手机号/邮箱/QQ/身份证/微博 UID），支持分页、排序与可选聚合。
@@ -17,11 +20,25 @@
 - AI 置信度：评估并可选写回主表。
 - 健康与指标：统一健康检查与指标接口，便于监控。
 
+## 体验与无障碍
+- 支持 PWA 安装与离线清单；Service Worker 与 Manifest 已配置。
+- 支持深浅色主题与语言切换；键盘导航与 ARIA 标签。
+
 ## 架构
 - 前端：`static/` 模块化 JS，入口 `static/main.js`，模板 `templates/index.html`。
 - 后端：Flask 应用 `app/app.py`（`create_app()`），路由 `app/api/routes.py`，统一响应 `app/api/response.py`。
 - 数据库：PostgreSQL；主表 `profile`，启动自动创建索引；跨表扫描与动态别名见 `app/models/database.py`。
 - 配置：`config/config.py` 统一管理，支持环境变量注入；支持 CORS、压缩与限流。
+
+## 数据源配置
+- 在 `config/data_source.json` 配置友好名称与日期。
+- 应用在运行时会从数据库元信息补齐缺失条目（若可用）。
+- 模板示例：
+  ```json
+  {
+    "example_table": { "name": "示例数据源", "date": "YYYY-MM-DD" }
+  }
+  ```
 
 ## 目录
 - `app/` 后端（API/服务/模型/初始化）
@@ -57,6 +74,8 @@
 - 自省：`GET /api/schema_introspect`
 - 健康与指标：`GET /health`、`GET /api/metrics`
 
+> 提示：对于较大或敏感的查询，`/api/search` 与 `/api/source_detail` 可选支持 `POST` JSON（双栈设计）。
+
 ## 部署示例
 - Gunicorn（前台）：`gunicorn -w 4 -b 127.0.0.1:5082 app.app:app`
 - Nginx 反向代理与 systemd 单元示例见英文版 README 对应章节。
@@ -65,6 +84,11 @@
 - 构建：`docker build -t stranger:latest .`
 - 运行：`docker run --name stranger -p 5082:5082 --env FLASK_PORT=5082 stranger:latest`
 - 说明：默认命令 `gunicorn -w 4 -b 0.0.0.0:5082 app.app:app`；端口通过 `-p` 与 `FLASK_PORT` 调整；`.dockerignore` 已精简镜像。
+
+## 安全建议
+- `.env` 不要提交；密钥通过环境变量注入（DB、API Keys）。
+- 若曾共享过真实凭据，请在发布前轮换；使用 `.env.example` 放占位。
+- 对外开放前，请收敛 `CORS_ORIGINS` 并设置合理限流。
 
 ## Docker Compose
 - 启动：`docker compose up -d --build`
@@ -83,4 +107,4 @@
 
 ## 贡献与许可
 - 欢迎 issues 与 PR；提交前请跑冒烟测试并更新文档。
-- 许可证如未明确，默认为内部使用；如需开源请添加 LICENSE。
+- 许可证以仓库中的 `LICENSE` 为准。
