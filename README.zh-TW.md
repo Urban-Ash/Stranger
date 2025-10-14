@@ -1,111 +1,106 @@
-# Stranger
-註：本專案完全由 AI 編寫。
+<div align="center">
 
-<p align="center">
-  <img src="https://img.shields.io/badge/AI%20Authored-100%25-blueviolet?style=for-the-badge" alt="純 AI 編寫 100%" />
-  
-</p>
+<h1>Stranger · OSINT 資訊檢索平台</h1>
 
-一個前後端一體化的 OSINT 資訊聚合與檢索系統。支援多語言 UI、資料維護、來源詳情檢視、驗證查詢與可選的 AI 置信度評估。
+<img src="https://img.shields.io/badge/AI%20Authored-100%25-blueviolet?style=flat" alt="AI Authored 100%" />
+<img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python" alt="Python" />
+<img src="https://img.shields.io/badge/Flask-2.x-000?logo=flask" alt="Flask" />
+<img src="https://img.shields.io/badge/PostgreSQL-13%2B-336791?logo=postgresql" alt="PostgreSQL" />
 
-## 特性
-- 智慧搜尋：自動辨識關鍵詞類型（姓名/手機號/電子郵件/QQ/身分證/微博 UID），支援分頁、排序與可選聚合。
-- 多語言：中文、英文、繁體中文、日文、韓文；語言選單具備 ARIA 無障礙提示。
-- 資料維護：新增/編輯對話框，支援來源增量更新與記錄刪除。
-- 來源詳情：點擊結果中的來源標籤，開啟彈窗檢視命中詳情。
-- 驗證查詢：手機歸屬地、QQ 頭像與暱稱、微博 UID 主頁資訊、身分證結構解析。
-- AI 置信度：評估並可選寫回主表。
-- 健康與指標：統一健康檢查與指標端點，便於監控。
-- 安全特性：CORS（`flask-cors`，`CORS_ORIGINS` 設定）、壓縮（`Flask-Compress`）、速率限制（`flask-limiter`，`RATE_LIMIT` 設定，預設 `60 per minute`）。認證啟用時（`AUTH_ENABLED=true`）非靜態路由需要登入。
+<p>整合前後端的 OSINT 集合與搜尋系統。提供多語 UI、來源詳情、驗證工具，以及可選的 AI 信心評估；同時支援認證、CSRF、限流與 CORS 等安全機制。</p>
 
-## 架構
-- 前端：`static/` 模組化 JS，入口 `static/main.js`，模板 `templates/index.html`。
-- 後端：Flask 應用 `app/app.py`（`create_app()`），路由 `app/api/routes.py`，統一回應 `app/api/response.py`。
-- 資料庫：PostgreSQL；主表 `profile`，啟動自動建立索引；跨表掃描與動態別名見 `app/models/database.py`。
-- 設定：`config/config.py` 統一管理，可由環境變數注入；支援 CORS、壓縮與限流。
+</div>
 
-## 目錄
-- `app/` 後端（API/服務/模型/初始化）
-- `static/` 前端靜態資源（JS/CSS/圖示）
-- `templates/` Jinja 模板
-- `config/` 設定與清單
-- `scripts/` 輔助腳本（冒煙測試、DB 檢查）
+## 為什麼選擇 Stranger
+- 多來源整合與搜尋：在同一 UI 搜尋姓名/電話/Email/QQ/身分證/Weibo UID，結果可開啟來源詳情對話框。
+- 多語與易用性：支援繁/簡/英/日/韓；鍵盤操作與 ARIA 無障礙提示。
+- 選配 AI 評估：可對資料的可信度進行評分，視需要寫回主表。
+- 工程級安全：可選認證、CSRF 保護、CORS、壓縮與限流；健康與指標端點便於觀測。
 
 ## 快速開始
-- 環境：Python 3.9+、PostgreSQL
-- 依賴安裝：`pip3 install -r requirements.txt`
-- 設定：複製 `.env.example` 為 `.env`，並設定：
+- 需求：Python 3.9+、PostgreSQL
+- 安裝依賴：`pip3 install -r requirements.txt`
+- 設定環境：將 `.env.example` 複製為 `.env`，並設定：
   - `FLASK_HOST`、`FLASK_PORT`、`FLASK_ENV`、`CORS_ORIGINS`
   - `PG_HOST`、`PG_PORT`、`PG_DATABASE`、`PG_USER`、`PG_PASSWORD`
-  - `SOURCE_DETAIL_STATEMENT_TIMEOUT_MS`（預設 `60000` ms）
-  - 選用代理與爬蟲：`CRAWLER_TIMEOUT`、`CRAWLER_RETRIES`、`CRAWLER_BACKOFF`、`HTTP_PROXY`/`HTTPS_PROXY`
-- 開發：`python3 main.py`（預設 `http://127.0.0.1:8080`）
-- 生產：`gunicorn -w 4 -b 0.0.0.0:5082 app.app:app`（預設 `http://127.0.0.1:5082`）
+  - `RATE_LIMIT`（預設 `60 per minute`）、`SOURCE_DETAIL_STATEMENT_TIMEOUT_MS`（預設 `60000`）
+  - 使用 AI 時：`DEEPSEEK_API_KEY`（未設則自動停用 AI）
+- 開發啟動：`python3 main.py`（預設 `http://127.0.0.1:8080`）
+- 生產啟動：`gunicorn -w 4 -b 0.0.0.0:5082 app.app:app`（預設 `http://127.0.0.1:5082`）
 
-## 存取
-- 開發：`http://127.0.0.1:8080/`（透過 `python3 main.py`）
-- 生產/Docker：`http://127.0.0.1:5082/`
-- 健康：`/health`
-- 指標：`/api/metrics`
+## 認證與安全
+- 認證開關：`AUTH_ENABLED=true` 時，除 `/login`、`/health`、`/static/` 外的 `/api/` 需登入。
+- CSRF 保護：`/api/` 下的 `POST/PUT/PATCH/DELETE` 需要 CSRF Token。
+  - 取得：登入後 `GET /api/csrf` 回傳 `{ token }` 並設定 `XSRF-TOKEN` Cookie。
+  - 使用：修改類請求需在 Header 加 `X-CSRF-Token: <token>`。
+  - 代理/HTTPS：`SESSION_COOKIE_SAMESITE`、`SESSION_COOKIE_SECURE` 會影響 Cookie 與 CSRF 行為。
 
-## API 概覽
-- `GET /api/search`：參數 `query`；可選 `page`、`page_size`、`sort`、`order`、`expand`
-- `POST /api/customer`：新增記錄
-- `PUT /api/customer/<id>`：更新部分欄位
-- `DELETE /api/customer/<id>`：刪除記錄
-- `GET /api/source_detail`：依主體鍵檢視表命中詳情（`id_card`、`phones`、`qqs`、`weibo_uid`、`email`、`name`）
-- 驗證：
-  - `GET /api/validate/phone` — 參數：`number`（必需）、`write`（`1|true|yes` 持久化）、可選 `id_card`、`merge_phone`；回傳：歸屬地資訊（`province`、`city`、`carrier`、`area_code`、`postcode`）和 `updated`/`id`。
-  - `GET /api/validate/qq` — 參數：`qq`（必需）、`write`（`1|true|yes` 持久化）、可選 `id_card`、`merge_phone`；回傳：資料（`nickname`、`avatar`、`level`、`vip`）和 `updated`/`id`。
-  - `GET /api/validate/weibo` — 參數：`uid|weibo_uid`（必需）、`write`（`1|true|yes` 持久化）、可選 `id_card`；回傳：資料（`screen_name`、`followers_count`、`verified`、`description`）和 `updated`/`id`。
-  - `GET /api/validate/id_card` — 參數：`id_card`（必需）、可選 `write`（`1|true|yes` 持久化）；回傳：驗證結果（`valid`、`address_code`、`birth_date`、`gender`、`consistency_check`）和 `updated`/`id`。
+## API 概覽（常用）
+- `GET /api/search`：`query`；可選 `page/page_size/sort/order/expand`
+- `POST /api/customer`：新增
+- `PUT /api/customer/<id>`：更新
+- `DELETE /api/customer/<id>`：刪除
+- `GET /api/source_detail`：依主鍵（`id_card`、`phones`、`qqs`、`weibo_uid`、`email`、`name`）檢視命中詳情
+- 驗證：`/api/validate/{phone|qq|weibo|id_card}`（`write=1` 可持久化）
 - AI：`POST /api/ai/assess_confidence`
-- 自我檢視：`GET /api/schema_introspect`
 - 健康與指標：`GET /health`、`GET /api/metrics`
 
-> 提示：對於較大或敏感的查詢，`/api/search` 與 `/api/source_detail` 可選支援 `POST` JSON（雙棧設計）。
+> 提示：對於大型或敏感查詢，`/api/search` 與 `/api/source_detail` 可選支援 `POST` JSON（雙棧）。
 
-## 部署示例
-- Gunicorn（前台）：`gunicorn -w 4 -b 127.0.0.1:5082 app.app:app`
-- Nginx 反向代理與 systemd 單元示例請參見英文版 README 對應章節。
+## 架構與目錄
+- 前端：`static/` 模組化 JS（入口 `static/main.js`）；模板 `templates/index.html`。
+- 後端：Flask `app/app.py`（`create_app()`）、路由 `app/api/routes.py`、統一回應 `app/api/response.py`。
+- DB：PostgreSQL 主表 `profile`；啟動時建索引；跨表掃描見 `app/models/database.py`。
+- 設定：`config/config.py` 與 `config/data_source.json`。
+- 前端細節：`static/modules/search.js` 渲染 `result-item`，以 `data-index` 做事件委派。
 
-## Docker
-- 建置：`docker build -t stranger:latest .`
-- 執行：`docker run --name stranger -p 5082:5082 --env FLASK_PORT=5082 stranger:latest`
-- 說明：預設命令 `gunicorn -w 4 -b 0.0.0.0:5082 app.app:app`；以 `-p` 與 `FLASK_PORT` 調整埠；`.dockerignore` 已精簡鏡像。
+## 端到端用法示例（含認證與 CSRF）
+使用 `curl`：
+- 登入：
+  - `curl -i -c /tmp/c.txt -d "username=<user>&password=<pass>" http://127.0.0.1:5082/login`
+- 取得 CSRF：
+  - `curl -b /tmp/c.txt http://127.0.0.1:5082/api/csrf`
+- 新增客戶：
+  - `curl -b /tmp/c.txt -H "X-CSRF-Token: <token>" -H "Content-Type: application/json" -d '{"id_card":"110101199001010012","name":"測試"}' http://127.0.0.1:5082/api/customer`
+- 搜尋客戶：
+  - `curl -b /tmp/c.txt "http://127.0.0.1:5082/api/search?query=110101199001010012"`
+- 更新客戶：
+  - `curl -b /tmp/c.txt -H "X-CSRF-Token: <token>" -H "Content-Type: application/json" -X PUT -d '{"company":"測試公司"}' http://127.0.0.1:5082/api/customer/<id>`
+- 刪除客戶：
+  - `curl -b /tmp/c.txt -H "X-CSRF-Token: <token>" -X DELETE http://127.0.0.1:5082/api/customer/<id>`
 
-## Docker Compose
-- 啟動：`docker compose up -d --build`
-- 日誌：`docker compose logs -f stranger`
-- 停止：`docker compose down`
-- 說明：主機埠來自 `FLASK_PORT`（預設 `5082`）；Compose 會讀取 `.env`，容器內以 Gunicorn 啟動。
+## 測試與自檢
+- 輕量冒煙：`python3 scripts/smoke_test.py --base http://127.0.0.1:5082`
+- 綜合 E2E：`python3 scripts/test_all.py --base http://127.0.0.1:5082`
+  - 選項：`--include-external`（phone/qq/weibo）、`--include-ai`（需 `DEEPSEEK_API_KEY`）
+  - 若 `requests` 無法取得 CSRF，會自動回退至 `curl` 模式。
 
-## 效能與穩定性建議
-- 電話匹配優先使用等值條件，避免全表掃描；維護常用欄位的表達式索引。
-- 控制跨表掃描預算：`SCAN_MAX_TABLES`、`SCAN_LIMIT_PER_TABLE`、`SCAN_TOTAL_TIME_BUDGET_MS`。
-- 連線管理：建議連線池或請求級連線；多副本限流存放建議使用 Redis。
-- 日誌與可觀測性：結構化日誌、輪替與等級控制。
+## 部署
+- Gunicorn：`pip3 install gunicorn && gunicorn -w 4 -b 127.0.0.1:5082 app.app:app`
+- Docker：
+  - 建置：`docker build -t stranger:latest .`
+  - 執行：`docker run --name stranger -p 5082:5082 --env FLASK_PORT=5082 stranger:latest`
+- Docker Compose：
+  - 啟動：`docker compose up -d --build`
+  - 日誌：`docker compose logs -f stranger`
+  - 停止：`docker compose down`
+- Nginx/systemd 範例請參見英文版 README。
 
-## 冒煙測試
-- `python3 scripts/smoke_test.py` 或指定基底位址：`python3 scripts/smoke_test.py http://<host>:<port>`（預設 `http://127.0.0.1:5082`）
-- 測試 6 個端點：`/`、`/api/metrics`、`/api/search`、`/api/source_detail`、`/api/schema_introspect`、`/api/validate/id_card`。
+## 故障排除
+- 登入後 `/api/csrf` 仍 401：
+  - 檢查同源與 Cookie 策略；必要時使用 `curl` 回退。
+- CSRF Token 不一致：
+  - 比對 JSON `token` 與 `XSRF-TOKEN` Cookie；注意 `SameSite`/`Secure` 設定。
+- 健康檢查顯示 DB 異常但功能可用：
+  - 開發環境以 HTTP 200 為準；生產需檢查連線、逾時與索引。
+- 外部驗證失敗：
+  - 設定代理 `HTTP_PROXY`/`HTTPS_PROXY`，並檢查出網策略與重試參數。
 
 ## 貢獻與授權
-- 歡迎 issues 與 PR；提交前請執行冒煙測試並更新文件。
-- 授權如未明確，默認為內部使用；如需開源請新增 LICENSE。
+- 歡迎 Issue/PR；合入前請執行測試並更新文件。
+- 授權以倉庫中的 `LICENSE` 為準。
 
-## 安全建議
-- 生產環境請更改 `SECRET_KEY`、`PG_PASSWORD`、`AUTH_PASSWORD`。
-- 將 `CORS_ORIGINS` 限制為可信網域（預設 `*`）。
-- 合理設定 `RATE_LIMIT`（預設 `60 per minute`）。
-- `.env` 不要提交；金鑰透過環境變數注入（DB、API Keys）。
-- 若曾分享過真實憑證，請在發布前輪替；使用 `.env.example` 放置佔位符。
-- 對外開放前，請收斂 `CORS_ORIGINS` 並設定合理限流。
-
-## 多語言與 PWA
-- 翻譯僅從 `static/i18n/` 外部 JSON 語言包載入。
-- 端點：
-  - `GET /i18n/list` — 回傳可用語言（`code`、`native_label`）。
-  - `GET /i18n/<lang>.json` — 回傳語言 JSON（結構包含 `meta` 與 `strings`）。
-- Manifest：`GET /manifest.json?lang=<code>` 需要 `lang` 參數，僅使用語言 JSON 的 `meta.pwa`；若缺少 `lang` 或語言 JSON 未提供 `meta.pwa`，回傳 `400`；不再提供內置回退。
-- 前端行為：語言選單由 `/i18n/list` 動態生成；切換語言後拉取 `/i18n/<lang>.json`，直接應用外部文案並刷新 PWA Manifest；請求失敗時不修改當前視圖。
+## 多語與 PWA
+- 翻譯來源僅為 `static/i18n/` 的外部 JSON。
+- 端點：`GET /i18n/list`、`GET /i18n/<lang>.json`
+- Manifest：`GET /manifest.json?lang=<code>` 僅使用對應語言 JSON 的 `meta.pwa`；若缺 `lang` 或無 `meta.pwa` 則回 `400`。

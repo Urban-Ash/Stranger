@@ -1,7 +1,7 @@
 import os
 import sys
 import logging
-from flask import Flask, render_template, send_from_directory, session, redirect, url_for, request
+from flask import Flask, render_template, send_from_directory, session, redirect, url_for, request, make_response
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -41,6 +41,17 @@ def create_app():
     
     # 配置应用
     app.config.update(config_manager.get_flask_config())
+    # 安全的会话Cookie配置
+    try:
+        env = (config_manager.get('FLASK_ENV') or 'development').lower()
+        app.config.update({
+            'SESSION_COOKIE_HTTPONLY': True,
+            'SESSION_COOKIE_SAMESITE': 'Lax',
+            'SESSION_COOKIE_SECURE': env == 'production'
+        })
+    except Exception:
+        # 忽略配置错误以避免阻断开发环境
+        pass
     
     # 启用CORS（按配置收敛来源）
     CORS(app, origins=config_manager.get('CORS_ORIGINS'))
@@ -109,6 +120,24 @@ def create_app():
             from app.api.response import error_response
             return error_response("Unauthorized", "Please login to access API", 401)
         return redirect(url_for('login'))
+
+    # CSRF 防护：对 API 的写操作检查令牌
+    @app.before_request
+    def csrf_protect():
+        try:
+            if not config_manager.get('CSRF_ENABLED', True):
+                return None
+            method = (request.method or 'GET').upper()
+            path = request.path or '/'
+            if path.startswith('/api/') and method in ('POST', 'PUT', 'PATCH', 'DELETE'):
+                token = request.headers.get('X-CSRF-Token') or request.cookies.get('XSRF-TOKEN')
+                sess_token = session.get('csrf_token')
+                if (not token) or (not sess_token) or (token != sess_token):
+                    from app.api.response import error_response
+                    return error_response("CSRF Failed", "Invalid or missing CSRF token", 403)
+        except Exception:
+            # 避免因异常影响其他请求
+            return None
     
     # 全局错误处理
     @app.errorhandler(Exception)
@@ -160,7 +189,19 @@ def create_app():
             return render_template('login.html', error_key='login_error_invalid_credentials', error='')
         session['logged_in'] = True
         session['user'] = username
-        return redirect(url_for('home'))
+        # 生成并设置 CSRF 令牌（同时通过 Cookie 暴露给前端）
+        try:
+            import secrets
+            tok = session.get('csrf_token') or secrets.token_hex(32)
+            session['csrf_token'] = tok
+        except Exception:
+            tok = None
+        resp = make_response(redirect(url_for('home')))
+        if tok:
+            # JS 可读取，为前端附加到请求头
+            env = (config_manager.get('FLASK_ENV') or 'development').lower()
+            resp.set_cookie('XSRF-TOKEN', tok, httponly=False, samesite='Lax', secure=(env == 'production'))
+        return resp
 
     @app.route('/logout', methods=['GET'])
     def logout():
@@ -238,6 +279,15 @@ def create_app():
         response.headers['Content-Type'] = 'application/manifest+json'
         return response
 
+    # 简易 CSRF 令牌获取端点（登录后可用）
+    @app.route('/api/csrf', methods=['GET'])
+    def get_csrf_token():
+        from flask import jsonify
+        tok = session.get('csrf_token')
+        if not tok:
+            return jsonify({"success": False, "error": "csrf_not_set"}), 400
+        return jsonify({"success": True, "token": tok})
+
     # i18n：列出可用语言（基于static/i18n目录JSON自动生成）
     @app.route('/i18n/list')
     def i18n_list():
@@ -301,6 +351,33 @@ def create_app():
             logger.error(f"健康检查失败: {e}")
             return error_response("Internal Server Error", "Health check failed", 500, status="unhealthy")
     
+    # 安全响应头
+    @app.after_request
+    def set_security_headers(response):
+        try:
+            # 基本安全头
+            response.headers['X-Content-Type-Options'] = 'nosniff'
+            response.headers['X-Frame-Options'] = 'DENY'
+            response.headers['Referrer-Policy'] = 'no-referrer'
+            response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
+            response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
+            response.headers['Permissions-Policy'] = "geolocation=(), camera=(), microphone=()"
+            # 严格 CSP：无内联脚本/事件处理器
+            csp = (
+                "default-src 'self'; "
+                "script-src 'self'; "
+                "style-src 'self' 'unsafe-inline'; "
+                "img-src 'self' data:; "
+                "font-src 'self'; "
+                "connect-src 'self'; "
+                "manifest-src 'self'; "
+                "worker-src 'self'"
+            )
+            response.headers['Content-Security-Policy'] = csp
+        except Exception:
+            pass
+        return response
+
     return app
 
 # 创建应用实例

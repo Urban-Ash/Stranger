@@ -4,7 +4,7 @@ import { t } from './i18n.js?v=2';
 import { displayResults, displayNoResults } from './search.js?v=5';
 import { renderStatusPanel, bindRetry } from './status_panel.js';
 import { requestJson } from './api.js';
-import { splitCommaList } from './utils.js';
+import { splitCommaList, escapeHtml } from './utils.js';
 
 export function openEditModal(result, index) {
   const editModal = document.getElementById('editModal');
@@ -45,8 +45,12 @@ function populateExistingSources(result, resultIndex) {
 
   dataSources.forEach((source, sourceIndex) => {
     const sourceName = typeof source === 'object' ? source.source : source;
-    const capturedAt = typeof source === 'object' && source.captured_at ? new Date(source.captured_at).toLocaleDateString('zh-CN') : '';
-    const displayText = capturedAt ? `${sourceName} (${capturedAt})` : sourceName;
+    const capturedAt = (typeof source === 'object' && source.captured_at)
+      ? new Date(source.captured_at).toLocaleDateString('zh-CN')
+      : '';
+    const safeSourceName = escapeHtml(String(sourceName || ''));
+    const safeCapturedAt = capturedAt ? escapeHtml(capturedAt) : '';
+    const displayText = capturedAt ? `${safeSourceName} (${safeCapturedAt})` : safeSourceName;
 
     const sourceItem = document.createElement('div');
     sourceItem.className = 'edit-source-item';

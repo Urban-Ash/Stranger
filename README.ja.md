@@ -1,209 +1,106 @@
-# Stranger
-注記: 本プロジェクトは完全にAIによって作成されています。
-
-<p align="center">
-  <img src="https://img.shields.io/badge/AI%20Authored-100%25-blueviolet?style=for-the-badge" alt="AI による作成 100%" />
-  
-</p>
-
-フロントエンドとバックエンドを統合した OSINT 集約・検索システムです。多言語 UI、データメンテナンス、ソース詳細閲覧、検証クエリ、AI 信頼度評価（任意）を提供します。
-
-## 特長
-- スマート検索：クエリ種別（氏名/電話/メール/QQ/ID/Weibo UID）を自動判別。ページング、ソート、集約に対応。
-- 多言語：日本語、中文、英語、繁体字、韓国語。ARIA 対応の言語メニュー。
-- データメンテナンス：追加/編集モーダル、ソースの増分更新、レコード削除。
-- ソース詳細：結果のソースチップをクリックして詳細モーダルを表示。
-- 検証：電話の地域、QQ プロフィール、Weibo UID 情報、ID カード解析。
-- AI 信頼度：評価して主テーブルへ書き戻し可能。
-- ヘルス/メトリクス：監視用の統一エンドポイント。
-- セキュリティ：CORS（`flask-cors`、`CORS_ORIGINS` 設定）、圧縮（`Flask-Compress`）、レート制限（`flask-limiter`、`RATE_LIMIT` 設定、既定 `60 per minute`）。認証有効時（`AUTH_ENABLED=true`）は非静的ルートでログイン必須。
-
-## 画面・UX
-- PWA 対応：デスクトップインストール、オフラインマニフェスト・サービスワーカー。
-- ダーク/ライトテーマと UI からの言語切り替え。
-- キーボードナビゲーションと ARIA ラベル対応のアクセシブルコンポーネント。
-
-## スクリーンショット
-
 <div align="center">
 
-<img src="docs/screenshots/stranger-home-zh.png" alt="Stranger ホーム（中国語 UI）" width="720" />
+<h1>Stranger · OSINT 情報検索プラットフォーム</h1>
 
-<br/>
+<img src="https://img.shields.io/badge/AI%20Authored-100%25-blueviolet?style=flat" alt="AI による作成 100%" />
+<img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python" alt="Python" />
+<img src="https://img.shields.io/badge/Flask-2.x-000?logo=flask" alt="Flask" />
+<img src="https://img.shields.io/badge/PostgreSQL-13%2B-336791?logo=postgresql" alt="PostgreSQL" />
 
-<img src="docs/screenshots/stranger-home-en.png" alt="Stranger Home（英語 UI）" width="720" />
+<p>フロントとバックを一体化した OSINT 集約・検索システム。多言語 UI、ソース詳細、検証ユーティリティ、任意の AI 信頼度評価を備え、認証・CSRF・レート制限・CORS などのセキュリティ機能に対応します。</p>
 
 </div>
 
-## アーキテクチャ
-- フロントエンド：`static/` モジュラー JS、エントリ `static/main.js`、テンプレート `templates/index.html`。
-- バックエンド：Flask アプリ `app/app.py`（`create_app()`）、ルート `app/api/routes.py`、統一レスポンス `app/api/response.py`。
-- データベース：PostgreSQL。メインテーブル `profile`、起動時インデックス作成。クロステーブルスキャンと動的エイリアスは `app/models/database.py`。
-- 設定：`config/config.py` で一元化、環境変数注入。CORS、圧縮、レート制限対応。
-  - CORS：`flask-cors` で有効化。`CORS_ORIGINS` で許可オリジン設定（既定 `*`）。
-  - 圧縮：`Flask-Compress` で JSON/テキストレスポンス圧縮。
-  - レート制限：`flask-limiter` で有効化。既定 `RATE_LIMIT=60 per minute`。
-  - 認証：`AUTH_ENABLED=true` の場合、全非静的ルートでログイン必須。
-
-## データソース
-- `config/data_source.json` でフレンドリー名と日付を設定。
-- アプリは利用可能時に DB メタデータから不足エントリを自動同期。
-- テンプレート例：
-  ```json
-  {
-    "example_table": { "name": "サンプルデータソース", "date": "YYYY-MM-DD" }
-  }
-  ```
-
-## ディレクトリ
-- `app/` バックエンド（API、サービス、DB モデル、アプリ初期化）
-- `static/` フロントエンドアセット（JS/CSS/アイコン）
-- `templates/` Jinja テンプレート
-- `config/` 設定とマニフェスト
-- `scripts/` ヘルパースクリプト（スモークテスト、DB 検査）
+## Stranger を選ぶ理由
+- 多ソース集約と検索：氏名・電話・メール・QQ・ID・Weibo UID を単一 UI で検索、ソース詳細モーダルでヒット内容を確認。
+- 多言語とアクセシビリティ：日本語・中国語・英語・繁体字・韓国語。キーボード操作と ARIA 対応。
+- 任意の AI 評価：データ信頼度を評価し、必要に応じてメインテーブルへ書き戻し。
+- エンジニアリングセキュリティ：認証（任意）、CSRF 保護、CORS、圧縮、レート制限。ヘルス・メトリクスで可観測性を提供。
 
 ## クイックスタート
-- 要件：Python 3.9+、PostgreSQL
-- 依存関係インストール：`pip3 install -r requirements.txt`
-- 環境設定：`.env.example` を `.env` にコピーして設定：
+- 前提：Python 3.9+、PostgreSQL
+- 依存インストール：`pip3 install -r requirements.txt`
+- 環境設定：`.env.example` を `.env` にコピーし以下を設定：
   - `FLASK_HOST`、`FLASK_PORT`、`FLASK_ENV`、`CORS_ORIGINS`
   - `PG_HOST`、`PG_PORT`、`PG_DATABASE`、`PG_USER`、`PG_PASSWORD`
-  - `SOURCE_DETAIL_STATEMENT_TIMEOUT_MS`（既定 `60000` ms）
-  - オプションのプロキシ・クローラー：`CRAWLER_TIMEOUT`、`CRAWLER_RETRIES`、`CRAWLER_BACKOFF`、`HTTP_PROXY`/`HTTPS_PROXY`
-- 開発実行：`python3 main.py`（既定 `http://127.0.0.1:8080`）
-- 本番実行：`gunicorn -w 4 -b 0.0.0.0:5082 app.app:app`（既定 `http://127.0.0.1:5082`）
+  - `RATE_LIMIT`（既定 `60 per minute`）、`SOURCE_DETAIL_STATEMENT_TIMEOUT_MS`（既定 `60000`）
+  - AI を使う場合：`DEEPSEEK_API_KEY`（未設定なら AI は自動無効化）
+- 開発起動：`python3 main.py`（既定 `http://127.0.0.1:8080`）
+- 本番起動：`gunicorn -w 4 -b 0.0.0.0:5082 app.app:app`（既定 `http://127.0.0.1:5082`）
 
-## アクセス
-- 開発：`http://127.0.0.1:8080/`（`python3 main.py` 経由）
-- 本番/Docker：`http://127.0.0.1:5082/`
-- ヘルス：`/health`
-- メトリクス：`/api/metrics`
+## 認証とセキュリティ
+- 認証スイッチ：`AUTH_ENABLED=true` の場合、`/login`・`/health`・`/static/` 等を除く `/api/` 配下はログイン必須。
+- CSRF 保護：`/api/` の `POST/PUT/PATCH/DELETE` に CSRF 検証を適用。
+  - 取得：ログイン後 `GET /api/csrf` が `{ token }` を返し、`XSRF-TOKEN` Cookie を設定。
+  - 利用：変更系リクエストはヘッダに `X-CSRF-Token: <token>` を付与。
+  - クロスサイト/HTTPS 代理：`SESSION_COOKIE_SAMESITE` や `SESSION_COOKIE_SECURE` の設定により、Cookie と CSRF の挙動が変わります。
 
-## API 概要
-- `GET /api/search`：パラメータ `query`。オプション `page`、`page_size`、`sort`、`order`、`expand`
-- `POST /api/customer`：レコード作成
-- `PUT /api/customer/<id>`：許可フィールド更新
-- `DELETE /api/customer/<id>`：レコード削除
-- `GET /api/source_detail`：サブジェクトキー（`id_card`、`phones`、`qqs`、`weibo_uid`、`email`、`name`）でテーブルヒット詳細を検査
-- バリデーター：
-  - `GET /api/validate/phone` — パラメータ：`number`（必須）、`write`（`1|true|yes` で永続化）、オプション `id_card`、`merge_phone`。帰属情報（`province`、`city`、`carrier`、`area_code`、`postcode`）と `updated`/`id` を返す。
-  - `GET /api/validate/qq` — パラメータ：`qq`（必須）、`write`（`1|true|yes`）、オプション `id_card`、`merge_phone`。`name`、`logo`、`updated`/`id` を返す。
-  - `GET /api/validate/weibo` — パラメータ：`uid` または `weibo_uid`（必須）、`write`（`1|true|yes`）、オプション `id_card`。プロフィール概要（`name`、`gender`、`avatar`、`fans`、`follows`、`rpz`、`posts`）と `updated`/`id` を返す。
-  - `GET /api/validate/id_card` — パラメータ：`id_card`（必須）、`write`（`1|true|yes`）。解析フィールド（`birth_date`、`gender`、`native_place`、`valid`）と既存との整合性を返す。
+## API 概要（よく使う）
+- `GET /api/search`：`query`。オプション `page/page_size/sort/order/expand`
+- `POST /api/customer`：作成
+- `PUT /api/customer/<id>`：更新
+- `DELETE /api/customer/<id>`：削除
+- `GET /api/source_detail`：主キー（`id_card`、`phones`、`qqs`、`weibo_uid`、`email`、`name`）でソース命中詳細を表示
+- 検証：`/api/validate/{phone|qq|weibo|id_card}`（`write=1` で永続化可）
 - AI：`POST /api/ai/assess_confidence`
-- イントロスペクション：`GET /api/schema_introspect`
 - ヘルス・メトリクス：`GET /health`、`GET /api/metrics`
 
-> 注：大規模またはプライバシー重要なクエリの場合、`/api/search` と `/api/source_detail` は `POST` JSON ボディをオプションでサポート（デュアルスタック設計）。
+> 注：大型/機密クエリでは、`/api/search` と `/api/source_detail` は `POST` JSON をオプションでサポート（デュアルスタック）。
 
-## デプロイ例
-**Gunicorn（フォアグラウンドテスト）**
-- `pip3 install gunicorn`
-- `gunicorn -w 4 -b 127.0.0.1:5082 app.app:app`
+## アーキテクチャとディレクトリ
+- フロント：`static/` モジュール JS（入口 `static/main.js`）、テンプレート `templates/index.html`。
+- バック：Flask `app/app.py`（`create_app()`）、ルート `app/api/routes.py`、レスポンス統一 `app/api/response.py`。
+- DB：PostgreSQL テーブル `profile`、起動時にインデックス作成。クロステーブルスキャンは `app/models/database.py`。
+- 設定：`config/config.py` と `config/data_source.json`。
+- フロント詳細：`static/modules/search.js` は `result-item` を描画し、`data-index` を用いたイベント委譲を実装。
 
-**Nginx リバースプロキシ**
-```
-upstream stranger_app {
-    server 127.0.0.1:5082;
-}
+## エンドツーエンド例（認証＋CSRF）
+`curl` を使用：
+- ログイン：
+  - `curl -i -c /tmp/c.txt -d "username=<user>&password=<pass>" http://127.0.0.1:5082/login`
+- CSRF 取得：
+  - `curl -b /tmp/c.txt http://127.0.0.1:5082/api/csrf`
+- 作成：
+  - `curl -b /tmp/c.txt -H "X-CSRF-Token: <token>" -H "Content-Type: application/json" -d '{"id_card":"110101199001010012","name":"テスト"}' http://127.0.0.1:5082/api/customer`
+- 検索：
+  - `curl -b /tmp/c.txt "http://127.0.0.1:5082/api/search?query=110101199001010012"`
+- 更新：
+  - `curl -b /tmp/c.txt -H "X-CSRF-Token: <token>" -H "Content-Type: application/json" -X PUT -d '{"company":"テスト会社"}' http://127.0.0.1:5082/api/customer/<id>`
+- 削除：
+  - `curl -b /tmp/c.txt -H "X-CSRF-Token: <token>" -X DELETE http://127.0.0.1:5082/api/customer/<id>`
 
-server {
-    listen 80;
-    server_name your.domain.com;
+## テストとセルフチェック
+- 軽量スモーク：`python3 scripts/smoke_test.py --base http://127.0.0.1:5082`
+- 総合 E2E：`python3 scripts/test_all.py --base http://127.0.0.1:5082`
+  - オプション：`--include-external`（phone/qq/weibo）、`--include-ai`（`DEEPSEEK_API_KEY` 必須）
+  - `requests` で CSRF 取得に失敗した場合、`curl` に自動フォールバックします。
 
-    location / {
-        proxy_pass http://stranger_app;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_read_timeout 75s;
-        proxy_send_timeout 75s;
-    }
-
-    location /static/ {
-        proxy_pass http://stranger_app;
-    }
-}
-```
-
-**systemd サービス**
-- 環境ファイル：`/etc/stranger/stranger.env`（`.env.example` 参照）
-- ユニット：`/etc/systemd/system/stranger.service`
-```
-[Unit]
-Description=Stranger API Service
-After=network.target
-
-[Service]
-Type=simple
-WorkingDirectory=/opt/stranger
-EnvironmentFile=/etc/stranger/stranger.env
-ExecStart=/usr/bin/gunicorn -w 4 -b 0.0.0.0:${FLASK_PORT} app.app:app
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
-
-## Docker
-本番イメージをビルド（Python 3.12-slim + Gunicorn）：
-
-**ビルド**
-- `docker build -t stranger:latest .`
-
-**実行**（コンテナ 5082 をホスト 5082 にマップ）
-- `docker run --name stranger -p 5082:5082 --env FLASK_PORT=5082 stranger:latest`
-
-**注記**
-- 既定コマンド：`gunicorn -w 4 -b 0.0.0.0:5082 app.app:app`。
-- `-p <host_port>:<container_port>` と `FLASK_PORT` でホストポート変更。
-- `.dockerignore` でイメージサイズ削減。
-
-## セキュリティ注意事項
-- `.env` をコミットしない。シークレット（DB、API キー）は環境経由で注入。
-- 以前共有した場合は認証情報をローテート。プレースホルダーには `.env.example` を使用。
-- エンドポイント公開前に `CORS_ORIGINS` と `RATE_LIMIT` を確認。
-- `AUTH_ENABLED=true` の場合、`AUTH_USERNAME` と `AUTH_PASSWORD`（または `AUTH_PASSWORD_HASH`）を設定。
-
-## Docker Compose
-`docker-compose.yml` でワンコマンドビルド・実行。
-
-- 開始：`docker compose up -d --build`
-- ログ：`docker compose logs -f stranger`
-- 停止：`docker compose down`
-
-注記：
-- ホストポートは `FLASK_PORT`（既定 `5082`）から。コンテナ `5082` にマップ。
-- Compose は `.env` を自動読み込み。Gunicorn はコンテナ内で `app.app:app` を実行。
-
-## パフォーマンス・安定性のヒント
-- 電話マッチングにはインデックス対応の等価条件を優先。フルスキャン回避。
-- `SOURCE_DETAIL_STATEMENT_TIMEOUT_MS` を調整。一般列の式インデックスを維持。
-- クロステーブルスキャン予算制御：`SCAN_MAX_TABLES`、`SCAN_LIMIT_PER_TABLE`、`SCAN_TOTAL_TIME_BUDGET_MS`。
-- 接続管理：プール（`ThreadedConnectionPool`）またはリクエストスコープ接続を検討。
-- レート制限ストレージ：マルチレプリカデプロイには共有ストア（例：Redis）を使用。
-- ログ・可観測性：構造化ログ、ローテーション、適切なレベル。
-
-## スモークテスト
-- `python3 scripts/smoke_test.py` または `python3 scripts/smoke_test.py http://<host>:<port>`
-- カバー範囲：`/`、`/api/metrics`、`/api/search`、`/api/source_detail`、`/api/schema_introspect`、`/api/validate/id_card`
-- 期待結果：`PASS (6 passed, 0 failed)`
+## デプロイ
+- Gunicorn：`pip3 install gunicorn && gunicorn -w 4 -b 127.0.0.1:5082 app.app:app`
+- Docker：
+  - ビルド：`docker build -t stranger:latest .`
+  - 実行：`docker run --name stranger -p 5082:5082 --env FLASK_PORT=5082 stranger:latest`
+- Docker Compose：
+  - 開始：`docker compose up -d --build`
+  - ログ：`docker compose logs -f stranger`
+  - 停止：`docker compose down`
+- Nginx/systemd の例は英語 README を参照。
 
 ## トラブルシューティング
-- 503 / タイムアウト：`statement timeout` のログを確認。タイムアウト増加またはクエリ最適化。インデックス確認。
-- 遅いクロステーブルスキャン：予算を下げるかキーベース集約に切り替え。
-- 外部リクエスト失敗：プロキシと再試行設定を設定。アウトバウンドネットワークポリシーを確認。
+- ログイン後も `/api/csrf` が 401：
+  - 同一オリジンと Cookie ポリシーを確認。必要に応じて `curl` フォールバックを使用。
+- CSRF トークン不一致：
+  - JSON の `token` と `XSRF-TOKEN` Cookie を比較。`SameSite`/`Secure` 設定に注意。
+- DB ヘルスが失敗でも機能は動作：
+  - 開発では HTTP 200 を優先。プロダクションでは接続/タイムアウト/インデックスを確認。
+- 外部検証失敗：
+  - プロキシ `HTTP_PROXY`/`HTTPS_PROXY` と出力ポリシー/再試行設定を確認。
 
 ## 貢献・ライセンス
-- Issue と PR を歓迎。提出前にスモークテストを実行し、ドキュメントを更新してください。
-- `LICENSE` の条項でライセンス。
+- Issue/PR を歓迎。マージ前にテストを実行し、文書を更新してください。
+- ライセンスは `LICENSE` に従います。
 
 ## 多言語と PWA
-- 翻訳は `static/i18n/` の外部 JSON 言語パックのみから読み込みます。
-- エンドポイント：
-  - `GET /i18n/list` — 利用可能な言語（`code`、`native_label`）を返します。
-  - `GET /i18n/<lang>.json` — 言語 JSON を返します（`meta` と `strings` を含みます）。
-- Manifest：`GET /manifest.json?lang=<code>` は `lang` パラメータが必須で、言語 JSON の `meta.pwa` のみを使用します。`lang` がない、または `meta.pwa` が存在しない場合は `400` を返し、ビルトインのフォールバックはありません。
-- フロントエンド：言語メニューは `/i18n/list` から動的生成。言語切り替え時に `/i18n/<lang>.json` を取得して外部翻訳を適用し、PWA マニフェストリンクを更新します。取得に失敗した場合、現在のビューは変更しません。
+- 翻訳は `static/i18n/` の外部 JSON のみを使用。
+- エンドポイント：`GET /i18n/list`、`GET /i18n/<lang>.json`
+- Manifest：`GET /manifest.json?lang=<code>` は `meta.pwa` のみを利用。`lang` 不足または `meta.pwa` 欠如時は `400`。

@@ -470,7 +470,7 @@ export function displayResults(results) {
       return `
         <div class="info-item" data-key="${escapeHtml(lowerKey)}">
           <div class="info-label">${translateKey(key)}</div>
-          <div class="info-value" title="${escapeHtml(val)}">${val}</div>
+          <div class="info-value" title="${escapeHtml(val)}">${lowerKey === 'metadata' ? val : escapeHtml(val)}</div>
         </div>`;
     });
 
@@ -496,19 +496,19 @@ export function displayResults(results) {
             <div class="result-id" data-id="${escapeHtml(result.id || '')}" title="记录ID">ID：${escapeHtml(result.id || '未知')}</div>
           </div>
           <div class="result-actions">
-            <button class="edit-btn" onclick="editResult(${index})" title="修改信息">
+            <button class="edit-btn" title="修改信息">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                 <path d="m18.5 2.5 a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
             </button>
-<button class="copy-btn" onclick="copyResult(${index})" title="${escapeHtml(t('copy'))}">
+<button class="copy-btn" title="${escapeHtml(t('copy'))}">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
                 <path d="m5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
               </svg>
             </button>
-            <button class="ai-btn" onclick="analyzeWithAI(${index})" title="置信度测评">
+            <button class="ai-btn" title="置信度测评">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
               </svg>
@@ -655,6 +655,29 @@ export function displayResults(results) {
       valueEl.setAttribute('title', val);
     });
     resultsContent.dataset.toggleBound = '1';
+  }
+
+  // 编辑/复制/AI评估按钮事件委托（只绑定一次）
+  if (!resultsContent.dataset.actionBound) {
+    resultsContent.addEventListener('click', (e) => {
+      const btn = e.target.closest('.edit-btn, .copy-btn, .ai-btn');
+      if (!btn) return;
+      const item = btn.closest('.result-item');
+      const idx = item && item.dataset.index ? Number(item.dataset.index) : NaN;
+      if (Number.isNaN(idx)) return;
+      if (btn.classList.contains('edit-btn')) {
+        try { window.editResult && window.editResult(idx); } catch {}
+        return;
+      }
+      if (btn.classList.contains('copy-btn')) {
+        try { window.copyResult && window.copyResult(idx); } catch {}
+        return;
+      }
+      if (btn.classList.contains('ai-btn')) {
+        try { window.analyzeWithAI && window.analyzeWithAI(idx); } catch {}
+      }
+    });
+    resultsContent.dataset.actionBound = '1';
   }
 
   // 手机/QQ/身份证点击查询（只绑定一次）

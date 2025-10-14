@@ -194,6 +194,11 @@ Notes:
 - Covers: `/`, `/api/metrics`, `/api/search`, `/api/source_detail`, `/api/schema_introspect`, `/api/validate/id_card`
 - Expected: `PASS (6 passed, 0 failed)`
 
+### End-to-End (auth/CSRF/CRUD)
+- `python3 scripts/test_all.py --base http://127.0.0.1:5082`
+- Options: `--include-external` (phone/qq/weibo), `--include-ai` (requires `DEEPSEEK_API_KEY`)
+- The script logs in, retrieves CSRF, runs create/search/update/delete, and falls back to `curl` automatically when `requests` cannot access CSRF due to cookie/CSP constraints.
+
 ## Troubleshooting
 - 503 / timeouts: check logs for `statement timeout`; increase timeout or optimize queries; ensure indexes.
 - Slow cross-table scans: lower budgets or switch to key-based aggregation.

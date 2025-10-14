@@ -1863,7 +1863,7 @@ def update_customer_info(customer_id: str, update_data: Dict[str, Any], _unused:
         raise ValidationError("id is required")
     conn = get_db()
 
-    # 允许更新的字段
+    # 允许更新的字段（修正：使用 relatives_relations 以匹配实际表结构）
     fields = {
         'name': update_data.get('name'),
         'gender': update_data.get('gender'),
@@ -1879,7 +1879,7 @@ def update_customer_info(customer_id: str, update_data: Dict[str, Any], _unused:
         'spouse_phone': update_data.get('spouse_phone'),
         'relatives_names': update_data.get('relatives_names'),
         'relatives_phones': update_data.get('relatives_phones'),
-        'relatives_types': update_data.get('relatives_types'),
+        'relatives_relations': update_data.get('relatives_relations'),
         'data_sources': update_data.get('data_sources'),
         'ai_confidence': update_data.get('ai_confidence'),
     }
@@ -1931,15 +1931,22 @@ def update_customer_info(customer_id: str, update_data: Dict[str, Any], _unused:
         fields['relatives_phones'] = [p for p in map(_normalize_phone, fields['relatives_phones'] or []) if p]
     if fields['relatives_names'] is not None:
         fields['relatives_names'] = [n.strip() for n in (fields['relatives_names'] or []) if n]
-    if fields['relatives_types'] is not None:
-        fields['relatives_types'] = [t.strip() for t in (fields['relatives_types'] or []) if t]
+    # 关系对象数组：仅保留{name, relation}有效项并去重
+    if fields['relatives_relations'] is not None:
+        rel_list = []
+        for d in (fields['relatives_relations'] or []):
+            if isinstance(d, dict):
+                name = (d.get('name') or '').strip()
+                rel = (d.get('relation') or d.get('type') or '').strip()
+                rel_list = _rel_add_relation(rel_list, name, rel)
+        fields['relatives_relations'] = rel_list
 
     sets = []
     params = []
     for k, v in fields.items():
         if v is None:
             continue
-        if k in ('phones','emails','qqs','weibo_uids','relatives_names','relatives_phones','relatives_types','data_sources','ai_confidence'):
+        if k in ('phones','emails','qqs','weibo_uids','relatives_names','relatives_phones','relatives_relations','data_sources','ai_confidence'):
             sets.append(f"{k}=%s")
             params.append(Json(v))
         else:
@@ -1949,7 +1956,7 @@ def update_customer_info(customer_id: str, update_data: Dict[str, Any], _unused:
     if not sets:
         # 无更新内容，返回原记录
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("SELECT * FROM profile WHERE id_card=%s", (customer_id,))
+            cur.execute("SELECT * FROM profile WHERE id=%s", (customer_id,))
             rec = cur.fetchone()
             if not rec:
                 raise ValidationError("record not found")
