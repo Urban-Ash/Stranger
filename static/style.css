@@ -115,7 +115,7 @@ html, body {
         --shadow-secondary: rgba(0, 0, 0, 0.5);
         --accent-primary: #ff3b30;
         --accent-secondary: #ff6b64;
-        --error-color: #ff453a;
+        --error-color: #9E1A11;
         --hover-bg: rgba(255, 59, 48, 0.15);
         --backdrop-filter: blur(10px);
         --text-color: var(--text-primary);
@@ -2251,7 +2251,7 @@ body {
   display: flex;
   gap: 0.5rem;
   z-index: 1003;
-  flex-direction: row-reverse;
+  flex-direction: row;
 }
 
 /* 覆盖原本的固定位置，让按钮跟随容器 */
