@@ -24,6 +24,18 @@
 - 支持 PWA 安装与离线清单；Service Worker 与 Manifest 已配置。
 - 支持深浅色主题与语言切换；键盘导航与 ARIA 标签。
 
+## 截图与体验
+
+<div align="center">
+
+<img src="docs/screenshots/stranger-home-zh.png" alt="Stranger 首页（中文界面）" width="720" />
+
+<br/>
+
+<img src="docs/screenshots/stranger-home-en.png" alt="Stranger Home（英文界面）" width="720" />
+
+</div>
+
 ## 架构
 - 前端：`static/` 模块化 JS，入口 `static/main.js`，模板 `templates/index.html`。
 - 后端：Flask 应用 `app/app.py`（`create_app()`），路由 `app/api/routes.py`，统一响应 `app/api/response.py`。

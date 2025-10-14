@@ -17,6 +17,18 @@
 - AI 信頼度：評価して主テーブルへ書き戻し可能。
 - ヘルス/メトリクス：監視用の統一エンドポイント。
 
+## スクリーンショット
+
+<div align="center">
+
+<img src="docs/screenshots/stranger-home-zh.png" alt="Stranger ホーム（中国語 UI）" width="720" />
+
+<br/>
+
+<img src="docs/screenshots/stranger-home-en.png" alt="Stranger Home（英語 UI）" width="720" />
+
+</div>
+
 ## アーキテクチャ
 - フロント：`static/` モジュール化 JS、エントリ `static/main.js`、テンプレート `templates/index.html`。
 - バックエンド：Flask アプリ `app/app.py`（`create_app()`）、ルート `app/api/routes.py`、レスポンス共通化 `app/api/response.py`。

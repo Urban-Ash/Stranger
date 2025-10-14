@@ -41,6 +41,18 @@
 - 개발 실행: `python3 main.py`
 - 프로덕션: `gunicorn -w 4 -b 0.0.0.0:5082 app.app:app`
 
+## 스크린샷
+
+<div align="center">
+
+<img src="docs/screenshots/stranger-home-zh.png" alt="Stranger 홈 (중국어 UI)" width="720" />
+
+<br/>
+
+<img src="docs/screenshots/stranger-home-en.png" alt="Stranger Home (영어 UI)" width="720" />
+
+</div>
+
 ## 접속
 - 홈: `http://127.0.0.1:5082/`
 - 헬스: `http://127.0.0.1:5082/health`
