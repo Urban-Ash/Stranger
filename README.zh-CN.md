@@ -19,6 +19,7 @@
 - 验证查询：手机号归属地、QQ 头像与昵称、微博 UID 主页信息、身份证结构解析。
 - AI 置信度：评估并可选写回主表。
 - 健康与指标：统一健康检查与指标接口，便于监控。
+- 安全特性：CORS（`flask-cors`，`CORS_ORIGINS` 配置）、压缩（`Flask-Compress`）、速率限制（`flask-limiter`，`RATE_LIMIT` 配置，默认 `60 per minute`）。认证启用时（`AUTH_ENABLED=true`）非静态路由需要登录。
 
 ## 体验与无障碍
 - 支持 PWA 安装与离线清单；Service Worker 与 Manifest 已配置。
@@ -61,13 +62,14 @@
   - `PG_HOST`、`PG_PORT`、`PG_DATABASE`、`PG_USER`、`PG_PASSWORD`
   - `SOURCE_DETAIL_STATEMENT_TIMEOUT_MS`（默认 `60000` ms）
   - 可选代理与爬虫：`CRAWLER_TIMEOUT`、`CRAWLER_RETRIES`、`CRAWLER_BACKOFF`、`HTTP_PROXY`/`HTTPS_PROXY`
-- 开发：`python3 main.py`
-- 生产：`gunicorn -w 4 -b 0.0.0.0:5082 app.app:app`
+- 开发：`python3 main.py`（默认 `http://127.0.0.1:8080`）
+- 生产：`gunicorn -w 4 -b 0.0.0.0:5082 app.app:app`（默认 `http://127.0.0.1:5082`）
 
 ## 访问
-- 首页：`http://127.0.0.1:5082/`
-- 健康：`http://127.0.0.1:5082/health`
-- 指标：`http://127.0.0.1:5082/api/metrics`
+- 开发：`http://127.0.0.1:8080/`（通过 `python3 main.py`）
+- 生产/Docker：`http://127.0.0.1:5082/`
+- 健康：`/health`
+- 指标：`/api/metrics`
 
 ## API 概览
 - `GET /api/search`：参数 `query`；可选 `page`、`page_size`、`sort`、`order`、`expand`
@@ -75,7 +77,11 @@
 - `PUT /api/customer/<id>`：更新部分字段
 - `DELETE /api/customer/<id>`：删除记录
 - `GET /api/source_detail`：按主体键查看表命中详情（`id_card`、`phones`、`qqs`、`weibo_uid`、`email`、`name`）
-- 验证：`/api/validate/phone`、`/api/validate/qq`、`/api/validate/weibo`、`/api/validate/id_card`
+- 验证：
+  - `GET /api/validate/phone` — 参数：`number`（必需）、`write`（`1|true|yes` 持久化）、可选 `id_card`、`merge_phone`；返回：归属地信息（`province`、`city`、`carrier`、`area_code`、`postcode`）和 `updated`/`id`。
+  - `GET /api/validate/qq` — 参数：`qq`（必需）、`write`（`1|true|yes` 持久化）、可选 `id_card`、`merge_phone`；返回：资料（`nickname`、`avatar`、`level`、`vip`）和 `updated`/`id`。
+  - `GET /api/validate/weibo` — 参数：`uid|weibo_uid`（必需）、`write`（`1|true|yes` 持久化）、可选 `id_card`；返回：资料（`screen_name`、`followers_count`、`verified`、`description`）和 `updated`/`id`。
+  - `GET /api/validate/id_card` — 参数：`id_card`（必需）、可选 `write`（`1|true|yes` 持久化）；返回：验证结果（`valid`、`address_code`、`birth_date`、`gender`、`consistency_check`）和 `updated`/`id`。
 - AI：`POST /api/ai/assess_confidence`
 - 自省：`GET /api/schema_introspect`
 - 健康与指标：`GET /health`、`GET /api/metrics`
@@ -92,6 +98,9 @@
 - 说明：默认命令 `gunicorn -w 4 -b 0.0.0.0:5082 app.app:app`；端口通过 `-p` 与 `FLASK_PORT` 调整；`.dockerignore` 已精简镜像。
 
 ## 安全建议
+- 生产环境请更改 `SECRET_KEY`、`PG_PASSWORD`、`AUTH_PASSWORD`。
+- 将 `CORS_ORIGINS` 限制为可信域名（默认 `*`）。
+- 合理设置 `RATE_LIMIT`（默认 `60 per minute`）。
 - `.env` 不要提交；密钥通过环境变量注入（DB、API Keys）。
 - 若曾共享过真实凭据，请在发布前轮换；使用 `.env.example` 放占位。
 - 对外开放前，请收敛 `CORS_ORIGINS` 并设置合理限流。
@@ -109,7 +118,8 @@
 - 日志与可观测性：结构化日志、轮转与级别控制。
 
 ## 冒烟测试
-- `python3 scripts/smoke_test.py` 或指定基地址：`python3 scripts/smoke_test.py http://<host>:<port>`
+- `python3 scripts/smoke_test.py` 或指定基地址：`python3 scripts/smoke_test.py http://<host>:<port>`（默认 `http://127.0.0.1:5082`）
+- 测试 6 个端点：`/`、`/api/metrics`、`/api/search`、`/api/source_detail`、`/api/schema_introspect`、`/api/validate/id_card`。
 
 ## 贡献与许可
 - 欢迎 issues 与 PR；提交前请跑冒烟测试并更新文档。

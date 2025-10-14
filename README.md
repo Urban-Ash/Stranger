@@ -38,6 +38,10 @@
 - Backend: Flask app `app/app.py` (`create_app()`), routes `app/api/routes.py`, unified responses in `app/api/response.py`.
 - Database: PostgreSQL; main table `profile`, indexes created on startup; cross-table scans and dynamic aliases in `app/models/database.py`.
 - Config: centralized `config/config.py` with env injection; CORS, compression, and rate limiting supported.
+  - CORS: enabled via `flask-cors`; set allowed origins with `CORS_ORIGINS` (default `*`).
+  - Compression: enabled via `Flask-Compress` for JSON/text responses.
+  - Rate limit: enabled via `flask-limiter`; defaults to `RATE_LIMIT=60 per minute`.
+  - Auth: if `AUTH_ENABLED=true`, all non-static routes require login.
 
 ## Data Sources
 - Configure friendly names and dates in `config/data_source.json`.
@@ -64,13 +68,14 @@
   - `PG_HOST`, `PG_PORT`, `PG_DATABASE`, `PG_USER`, `PG_PASSWORD`
   - `SOURCE_DETAIL_STATEMENT_TIMEOUT_MS` (default `60000` ms)
   - Optional proxy & crawler: `CRAWLER_TIMEOUT`, `CRAWLER_RETRIES`, `CRAWLER_BACKOFF`, `HTTP_PROXY`/`HTTPS_PROXY`
-- Run dev: `python3 main.py`
-- Run production: `gunicorn -w 4 -b 0.0.0.0:5082 app.app:app`
+- Run dev: `python3 main.py` (defaults to `http://127.0.0.1:8080`)
+- Run production: `gunicorn -w 4 -b 0.0.0.0:5082 app.app:app` (defaults to `http://127.0.0.1:5082`)
 
 ## Access
-- Home: `http://127.0.0.1:5082/`
-- Health: `http://127.0.0.1:5082/health`
-- Metrics: `http://127.0.0.1:5082/api/metrics`
+- Dev: `http://127.0.0.1:8080/` (via `python3 main.py`)
+- Prod/Docker: `http://127.0.0.1:5082/`
+- Health: `/health`
+- Metrics: `/api/metrics`
 
 ## API Overview
 - `GET /api/search`: params `query`; optional `page`, `page_size`, `sort`, `order`, `expand`
@@ -79,10 +84,10 @@
 - `DELETE /api/customer/<id>`: delete record
 - `GET /api/source_detail`: inspect table hit details by subject keys (`id_card`, `phones`, `qqs`, `weibo_uid`, `email`, `name`)
 - Validators:
-  - `GET /api/validate/phone`
-  - `GET /api/validate/qq`
-  - `GET /api/validate/weibo`
-  - `GET /api/validate/id_card`
+  - `GET /api/validate/phone` — params: `number` (required), `write` (`1|true|yes` to persist), optional `id_card`, `merge_phone`; returns attribution (`province`, `city`, `carrier`, `area_code`, `postcode`) and `updated`/`id`.
+  - `GET /api/validate/qq` — params: `qq` (required), `write` (`1|true|yes`), optional `id_card`, `merge_phone`; returns `name`, `logo`, and `updated`/`id`.
+  - `GET /api/validate/weibo` — params: `uid` or `weibo_uid` (required), `write` (`1|true|yes`), optional `id_card`; returns profile summary (`name`, `gender`, `avatar`, `fans`, `follows`, `rpz`, `posts`) and `updated`/`id`.
+  - `GET /api/validate/id_card` — params: `id_card` (required), `write` (`1|true|yes`); returns parsed fields (`birth_date`, `gender`, `native_place`, `valid`) and consistency vs existing.
 - AI: `POST /api/ai/assess_confidence`
 - Introspection: `GET /api/schema_introspect`
 - Health & metrics: `GET /health`, `GET /api/metrics`
@@ -157,7 +162,8 @@ Build a production image (Python 3.12-slim + Gunicorn):
 ## Security Notes
 - Do not commit `.env`; secrets (DB, API keys) are injected via environment.
 - Rotate credentials if previously shared; use `.env.example` for placeholders.
-- Review CORS origins and rate limit settings before exposing endpoints.
+- Review `CORS_ORIGINS` and `RATE_LIMIT` before exposing endpoints.
+- If `AUTH_ENABLED=true`, configure `AUTH_USERNAME` and `AUTH_PASSWORD` (or `AUTH_PASSWORD_HASH`).
 
 ## Docker Compose
 Use `docker-compose.yml` for one-command build & run.

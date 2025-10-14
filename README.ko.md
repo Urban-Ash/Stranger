@@ -16,6 +16,7 @@
 - 검증: 전화 지역, QQ 프로필, Weibo UID 정보, 신분증 구조 파싱.
 - AI 신뢰도: 평가 후 주 테이블에 선택적으로 반영.
 - 헬스/메트릭: 모니터링용 통합 엔드포인트.
+- 보안: CORS(`flask-cors`, `CORS_ORIGINS` 설정), 압축(`Flask-Compress`), 레이트 제한(`flask-limiter`, `RATE_LIMIT` 설정, 기본 `60 per minute`). 인증 활성화 시(`AUTH_ENABLED=true`) 비정적 라우트에서 로그인 필요.
 
 ## 아키텍처
 - 프론트엔드: `static/` 모듈형 JS, 엔트리 `static/main.js`, 템플릿 `templates/index.html`.
@@ -38,8 +39,8 @@
   - `PG_HOST`, `PG_PORT`, `PG_DATABASE`, `PG_USER`, `PG_PASSWORD`
   - `SOURCE_DETAIL_STATEMENT_TIMEOUT_MS`(기본 `60000` ms)
   - 선택: 프록시/크롤러 `CRAWLER_TIMEOUT`, `CRAWLER_RETRIES`, `CRAWLER_BACKOFF`, `HTTP_PROXY`/`HTTPS_PROXY`
-- 개발 실행: `python3 main.py`
-- 프로덕션: `gunicorn -w 4 -b 0.0.0.0:5082 app.app:app`
+- 개발 실행: `python3 main.py` (기본 `http://127.0.0.1:8080`)
+- 프로덕션: `gunicorn -w 4 -b 0.0.0.0:5082 app.app:app` (기본 `http://127.0.0.1:5082`)
 
 ## 스크린샷
 
@@ -54,9 +55,10 @@
 </div>
 
 ## 접속
-- 홈: `http://127.0.0.1:5082/`
-- 헬스: `http://127.0.0.1:5082/health`
-- 메트릭: `http://127.0.0.1:5082/api/metrics`
+- 개발: `http://127.0.0.1:8080/` (`python3 main.py` 경유)
+- 프로덕션/Docker: `http://127.0.0.1:5082/`
+- 헬스: `/health`
+- 메트릭: `/api/metrics`
 
 ## API 개요
 - `GET /api/search`: `query`, 옵션 `page`, `page_size`, `sort`, `order`, `expand`
@@ -64,10 +66,19 @@
 - `PUT /api/customer/<id>`: 일부 필드 업데이트
 - `DELETE /api/customer/<id>`: 삭제
 - `GET /api/source_detail`: 주 키(`id_card`, `phones`, `qqs`, `weibo_uid`, `email`, `name`)로 상세
-- 검증: `/api/validate/phone`, `/api/validate/qq`, `/api/validate/weibo`, `/api/validate/id_card`
+- 검증:
+  - `GET /api/validate/phone` — 매개변수: `number`(필수), `write`(`1|true|yes`로 지속화), 선택 `id_card`, `merge_phone`; 반환: 지역 정보(`province`, `city`, `carrier`, `area_code`, `postcode`)와 `updated`/`id`.
+  - `GET /api/validate/qq` — 매개변수: `qq`(필수), `write`(`1|true|yes`로 지속화), 선택 `id_card`, `merge_phone`; 반환: 프로필(`nickname`, `avatar`, `level`, `vip`)과 `updated`/`id`.
+  - `GET /api/validate/weibo` — 매개변수: `uid|weibo_uid`(필수), `write`(`1|true|yes`로 지속화), 선택 `id_card`; 반환: 프로필(`screen_name`, `followers_count`, `verified`, `description`)과 `updated`/`id`.
+  - `GET /api/validate/id_card` — 매개변수: `id_card`(필수), 선택 `write`(`1|true|yes`로 지속화); 반환: 검증 결과(`valid`, `address_code`, `birth_date`, `gender`, `consistency_check`)와 `updated`/`id`.
 - AI: `POST /api/ai/assess_confidence`
 - 자가 점검: `GET /api/schema_introspect`
 - 헬스/메트릭: `GET /health`, `GET /api/metrics`
+
+## 보안 주의사항
+- 프로덕션에서는 `SECRET_KEY`, `PG_PASSWORD`, `AUTH_PASSWORD`를 변경하세요.
+- `CORS_ORIGINS`를 신뢰할 수 있는 도메인으로 제한하세요 (기본 `*`).
+- `RATE_LIMIT`를 적절히 설정하세요 (기본 `60 per minute`).
 
 ## 배포 예시
 - Gunicorn(포그라운드): `gunicorn -w 4 -b 127.0.0.1:5082 app.app:app`
@@ -87,7 +98,8 @@
 - 크로스 테이블 스캔 예산 제어. 일반 열에 대한 표현식 인덱스 유지.
 
 ## 스모크 테스트
-- `python3 scripts/smoke_test.py` 또는 베이스 URL 지정.
+- `python3 scripts/smoke_test.py` 또는 베이스 URL 지정 (기본 `http://127.0.0.1:5082`).
+- 6개 엔드포인트 테스트: `/`, `/api/metrics`, `/api/search`, `/api/source_detail`, `/api/schema_introspect`, `/api/validate/id_card`.
 
 ## 기여 및 라이선스
 - Issue/PR 환영. 스모크 테스트 실행과 문서 갱신을 권장합니다.
