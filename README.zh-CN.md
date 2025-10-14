@@ -92,6 +92,39 @@
 - Gunicorn（前台）：`gunicorn -w 4 -b 127.0.0.1:5082 app.app:app`
 - Nginx 反向代理与 systemd 单元示例见英文版 README 对应章节。
 
+## 多语言与 PWA
+- 前端仅使用 `static/i18n/` 外部 JSON 语言包，不再合并内置词典。
+- 后端端点：
+  - `GET /i18n/list` — 返回可用语言列表（`code`、`native_label`）。
+  - `GET /i18n/<lang>.json` — 返回语言 JSON。示例：
+    ```json
+    {
+      "meta": {
+        "native_label": "English",
+        "pwa": {
+          "name": "Stranger OSINT",
+          "short_name": "Stranger",
+          "description": "OSINT query platform, installable and offline-ready",
+          "shortcuts": [
+            { "name": "Quick Search", "short_name": "Search", "description": "Open home and start searching", "url": "/?action=search" }
+          ]
+        }
+      },
+      "strings": {
+        "login_title": "Login to Stranger",
+        "login_username": "Username",
+        "login_password": "Password",
+        "login_submit": "Login"
+      }
+    }
+    ```
+- Manifest：`GET /manifest.json?lang=<code>` 要求显式传入 `lang` 参数，仅使用语言 JSON 的 `meta.pwa`；若缺失 `lang` 或语言 JSON 未提供 `meta.pwa`，返回 `400`；不再提供内置回退。
+- 前端行为：语言菜单由 `/i18n/list` 动态生成；切换语言后拉取 `/i18n/<lang>.json`，直接应用外部文案并刷新 PWA Manifest；请求失败时不修改当前视图。
+
+## 主题
+- 支持 `prefers-color-scheme`；若系统检测不可用或失败，默认浅色主题。
+- 主题切换会把选择写入 `localStorage` 的 `theme`。
+
 ## Docker
 - 构建：`docker build -t stranger:latest .`
 - 运行：`docker run --name stranger -p 5082:5082 --env FLASK_PORT=5082 stranger:latest`

@@ -206,6 +206,14 @@ WantedBy=multi-user.target
 - 이슈와 PR 환영; 제출 전에 스모크 테스트를 실행하고 문서를 업데이트하세요.
 - `LICENSE`의 조건에 따라 라이선스됨.
 
+## 국제화 & PWA
+- 번역은 `static/i18n/` 외부 JSON 언어 팩에서만 로드합니다.
+- 엔드포인트:
+  - `GET /i18n/list` — 사용 가능한 언어 목록(`code`, `native_label`)을 반환합니다.
+  - `GET /i18n/<lang>.json` — 언어 JSON을 반환합니다(`meta`, `strings` 포함).
+- 매니페스트: `GET /manifest.json?lang=<code>` 는 `lang` 파라미터가 필수이며, 언어 JSON의 `meta.pwa`만 사용합니다. `lang`이 없거나 `meta.pwa`가 없으면 `400`을 반환하며, 내장 폴백은 제공하지 않습니다.
+- 프론트엔드: 언어 메뉴는 `/i18n/list`에서 동적으로 생성됩니다. 언어 변경 시 `/i18n/<lang>.json`을 가져와 외부 번역을 적용하고 PWA 매니페스트 링크를 새로고침합니다. 요청 실패 시 현재 화면은 변경되지 않습니다.
+
 ## 보안 주의사항
 - 프로덕션에서는 `SECRET_KEY`, `PG_PASSWORD`, `AUTH_PASSWORD`를 변경하세요.
 - `CORS_ORIGINS`를 신뢰할 수 있는 도메인으로 제한하세요 (기본 `*`).

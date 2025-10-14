@@ -199,3 +199,11 @@ WantedBy=multi-user.target
 ## 貢献・ライセンス
 - Issue と PR を歓迎。提出前にスモークテストを実行し、ドキュメントを更新してください。
 - `LICENSE` の条項でライセンス。
+
+## 多言語と PWA
+- 翻訳は `static/i18n/` の外部 JSON 言語パックのみから読み込みます。
+- エンドポイント：
+  - `GET /i18n/list` — 利用可能な言語（`code`、`native_label`）を返します。
+  - `GET /i18n/<lang>.json` — 言語 JSON を返します（`meta` と `strings` を含みます）。
+- Manifest：`GET /manifest.json?lang=<code>` は `lang` パラメータが必須で、言語 JSON の `meta.pwa` のみを使用します。`lang` がない、または `meta.pwa` が存在しない場合は `400` を返し、ビルトインのフォールバックはありません。
+- フロントエンド：言語メニューは `/i18n/list` から動的生成。言語切り替え時に `/i18n/<lang>.json` を取得して外部翻訳を適用し、PWA マニフェストリンクを更新します。取得に失敗した場合、現在のビューは変更しません。

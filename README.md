@@ -1,8 +1,8 @@
 <div align="center">
 
-<h1>Stranger · OSINT OSINT information retrieval platform</h1>
+<h1>Stranger · OSINT Information Retrieval Platform</h1>
 
-[中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md)
+[简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md)
 
 <br/>
 
@@ -33,10 +33,6 @@
 ## Screenshots
 
 <div align="center">
-
-<img src="docs/screenshots/stranger-home-zh.png" alt="Stranger Home (Chinese UI)" width="720" />
-
-<br/>
 
 <img src="docs/screenshots/stranger-home-en.png" alt="Stranger Home (English UI)" width="720" />
 
@@ -202,6 +198,39 @@ Notes:
 - 503 / timeouts: check logs for `statement timeout`; increase timeout or optimize queries; ensure indexes.
 - Slow cross-table scans: lower budgets or switch to key-based aggregation.
 - External requests failing: set proxies and retry configs; verify outbound network policies.
+
+## Internationalization & PWA
+- Translations load only from external JSON language packs in `static/i18n/`.
+- Endpoints:
+  - `GET /i18n/list` — returns available languages with `code` and `native_label`.
+  - `GET /i18n/<lang>.json` — returns language JSON. Example:
+    ```json
+    {
+      "meta": {
+        "native_label": "English",
+        "pwa": {
+          "name": "Stranger OSINT",
+          "short_name": "Stranger",
+          "description": "OSINT query platform, installable and offline-ready",
+          "shortcuts": [
+            { "name": "Quick Search", "short_name": "Search", "description": "Open home and start searching", "url": "/?action=search" }
+          ]
+        }
+      },
+      "strings": {
+        "login_title": "Login to Stranger",
+        "login_username": "Username",
+        "login_password": "Password",
+        "login_submit": "Login"
+      }
+    }
+    ```
+- Manifest: `GET /manifest.json?lang=<code>` requires the `lang` parameter, uses only `meta.pwa` from the language JSON, and returns `400` if `lang` is missing or `meta.pwa` is absent; no built-in fallback.
+- Frontend: the language menu populates from `/i18n/list`; switching language fetches `/i18n/<lang>.json`, applies external translations, and refreshes the manifest link; if the request fails, the current view remains unchanged.
+
+## Theme
+- Respects `prefers-color-scheme`; if detection fails, defaults to the light theme.
+- Theme toggling persists choice in `localStorage` under `theme`.
 
 ## Contributing & License
 - Issues and PRs welcome; run smoke tests and update docs before submitting.

@@ -101,3 +101,11 @@
 - `.env` 不要提交；金鑰透過環境變數注入（DB、API Keys）。
 - 若曾分享過真實憑證，請在發布前輪替；使用 `.env.example` 放置佔位符。
 - 對外開放前，請收斂 `CORS_ORIGINS` 並設定合理限流。
+
+## 多語言與 PWA
+- 翻譯僅從 `static/i18n/` 外部 JSON 語言包載入。
+- 端點：
+  - `GET /i18n/list` — 回傳可用語言（`code`、`native_label`）。
+  - `GET /i18n/<lang>.json` — 回傳語言 JSON（結構包含 `meta` 與 `strings`）。
+- Manifest：`GET /manifest.json?lang=<code>` 需要 `lang` 參數，僅使用語言 JSON 的 `meta.pwa`；若缺少 `lang` 或語言 JSON 未提供 `meta.pwa`，回傳 `400`；不再提供內置回退。
+- 前端行為：語言選單由 `/i18n/list` 動態生成；切換語言後拉取 `/i18n/<lang>.json`，直接應用外部文案並刷新 PWA Manifest；請求失敗時不修改當前視圖。
