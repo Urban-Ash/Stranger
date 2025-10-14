@@ -1,6 +1,6 @@
 // 搜索模块：仅负责搜索流程与结果渲染入口
 import { showToast, escapeHtml, formatValue } from './utils.js';
-import { t, getLang } from './i18n.js?v=2';
+import { t } from './i18n.js?v=2';
 import { renderStatusPanel, bindRetry } from './status_panel.js';
 
 export function setupSearch({ onResults }) {
@@ -299,33 +299,7 @@ export function displayResults(results) {
           </div>`;
       });
     } else {
-      // 回退到旧 data_sources 字段
-      let dataSources = result.data_sources;
-      if (typeof dataSources === 'string') {
-        dataSources = dataSources.split(',').map((s) => s.trim()).filter((s) => s);
-      }
-      if (Array.isArray(dataSources) && dataSources.length > 0) {
-        const formatDateDots = (s) => {
-          if (!s) return '';
-          const d = new Date(s);
-          if (Number.isNaN(d.getTime())) return String(s);
-          const y = d.getFullYear();
-          const m = String(d.getMonth() + 1).padStart(2, '0');
-          const dd = String(d.getDate()).padStart(2, '0');
-          return `${y}.${m}.${dd}`;
-        };
-        dataSources.forEach((source, sourceIndex) => {
-          const sourceName = typeof source === 'object' ? (source.source || source.table || source.name || '') : source;
-          const capturedAt = typeof source === 'object' && source.captured_at ? formatDateDots(source.captured_at) : '';
-          const displayText = capturedAt ? `${sourceName}（${capturedAt}）` : sourceName;
-          sourcesHtml += `
-            <div class="data-source-item" data-result-index="${index}" data-source-index="${sourceIndex}" data-table="${escapeHtml(sourceName)}" data-chinese="${escapeHtml(sourceName)}" data-date="${escapeHtml(capturedAt)}">
-              <span class="source-text">${escapeHtml(displayText)}</span>
-            </div>`;
-        });
-      } else {
-    sourcesHtml += `<div class="data-source-item no-interaction">${t('unknown')}</div>`;
-      }
+      sourcesHtml += `<div class="data-source-item no-interaction">${t('unknown')}</div>`;
     }
     sourcesHtml += '</div></div>';
 

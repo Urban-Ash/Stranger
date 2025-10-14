@@ -96,6 +96,7 @@ def create_app():
             path == '/health' or
             path == '/manifest.json' or
             path == '/sw.js' or
+            path.startswith('/i18n/') or
             path.startswith('/static/') or
             path.startswith('/icons/') or
             path.startswith('/favicon')
@@ -173,8 +174,111 @@ def create_app():
 
     @app.route('/manifest.json')
     def manifest():
-        config_dir = os.path.join(project_root, 'config')
-        return send_from_directory(config_dir, 'manifest.json')
+        from flask import jsonify
+        import json
+        # 要求显式传入语言参数
+        lang = request.args.get('lang')
+        if not lang:
+            return jsonify({"error": "missing_lang", "message": "lang query parameter is required"}), 400
+
+        # 仅使用外部 JSON 提供的 PWA 元信息，不再使用任何内置后备
+        json_path = os.path.join(app.static_folder, 'i18n', f'{lang}.json')
+        if not os.path.exists(json_path):
+            return jsonify({"error": "not_found", "message": "language json not found"}), 404
+        try:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            pwa = ((data.get('meta') or {}).get('pwa')) or None
+            if not pwa:
+                return jsonify({"error": "missing_pwa_meta", "message": "meta.pwa not provided in language json"}), 400
+        except Exception as e:
+            logger.error(f"读取语言JSON失败: {e}")
+            return jsonify({"error": "internal_error", "message": "failed to read language json"}), 500
+
+        # 语言代码校验并映射 manifest 的 lang 字段
+        lang_map = {
+            'zh': 'zh-CN',
+            'zh-TW': 'zh-TW',
+            'en': 'en',
+            'ja': 'ja',
+            'ko': 'ko'
+        }
+        if lang not in lang_map:
+            return jsonify({"error": "unsupported_lang", "message": "unsupported language code"}), 400
+        manifest_lang = lang_map[lang]
+
+        # 构建完整的 manifest（固定结构 + 语言 JSON 的 pwa 字段）
+        manifest_json = {
+            "id": "stranger.app",
+            "lang": manifest_lang,
+            "dir": "ltr",
+            "start_url": "/",
+            "scope": "/",
+            "display": "standalone",
+            "orientation": "portrait",
+            "background_color": "#0b0c10",
+            "theme_color": "#4FC3F7",
+            "icons": [
+                {
+                    "src": "/static/icons/icon.svg",
+                    "sizes": "any",
+                    "type": "image/svg+xml",
+                    "purpose": "any maskable"
+                }
+            ],
+            "categories": ["productivity", "utilities"],
+            "prefer_related_applications": False,
+            "name": pwa.get('name'),
+            "short_name": pwa.get('short_name'),
+            "description": pwa.get('description'),
+            "shortcuts": pwa.get('shortcuts')
+        }
+
+        response = jsonify(manifest_json)
+        response.headers['Content-Type'] = 'application/manifest+json'
+        return response
+
+    # i18n：列出可用语言（基于static/i18n目录JSON自动生成）
+    @app.route('/i18n/list')
+    def i18n_list():
+        from flask import jsonify
+        import json
+        dir_path = os.path.join(app.static_folder, 'i18n')
+        items = []
+        try:
+            if os.path.exists(dir_path):
+                for name in os.listdir(dir_path):
+                    if name.endswith('.json'):
+                        code = name[:-5]
+                        native_label = code
+                        try:
+                            with open(os.path.join(dir_path, name), 'r', encoding='utf-8') as f:
+                                data = json.load(f)
+                                native_label = (data.get('meta') or {}).get('native_label') or native_label
+                        except Exception:
+                            pass
+                        items.append({"code": code, "native_label": native_label})
+        except Exception as e:
+            logger.warning(f"读取语言列表失败: {e}")
+        # 仅返回在 static/i18n 中发现的语言（完全外部化）
+        return jsonify(items)
+
+    # i18n：返回指定语言的JSON内容
+    @app.route('/i18n/<lang>.json')
+    def i18n_json(lang: str):
+        from flask import jsonify
+        import json
+        dir_path = os.path.join(app.static_folder, 'i18n')
+        file_path = os.path.join(dir_path, f'{lang}.json')
+        if not os.path.exists(file_path):
+            return jsonify({"error": "not_found", "message": "language json not found"}), 404
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            return jsonify(data)
+        except Exception as e:
+            logger.error(f"读取语言JSON失败: {e}")
+            return jsonify({"error": "internal_error", "message": "failed to read language json"}), 500
     
     # 健康检查端点
     @app.route('/health')

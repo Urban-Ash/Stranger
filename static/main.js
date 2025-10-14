@@ -1,18 +1,26 @@
 // 入口模块：装配搜索、编辑、添加逻辑（保留样式与 DOM 结构）
 import { setupSearch, displayResults } from './modules/search.js?v=5';
-import { initI18n, setLang, getLang, t, getSupportedLangs, getLangNativeLabel } from './modules/i18n.js?v=2';
+import { initI18n, setLang, getLang, t, getSupportedLangs, getLangNativeLabel, updatePWAManifest } from './modules/i18n.js?v=2';
 import { openEditModal, bindEditModalEvents } from './modules/edit.js?v=3';
 import { setupAddModal } from './modules/add.js?v=3';
 
 function initApp() {
   // 初始化 i18n
   initI18n();
-  // 主题切换初始化
+  // 初始化PWA manifest
+  updatePWAManifest();
+  // 主题切换初始化（系统检测失败默认浅色）
   const root = document.documentElement;
   const savedTheme = localStorage.getItem('theme');
-  if (savedTheme === 'light' || savedTheme === 'dark') {
-    root.setAttribute('data-theme', savedTheme);
-  }
+  let systemPrefersDark = null;
+  try {
+    systemPrefersDark = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? true : false;
+  } catch (e) { systemPrefersDark = null; }
+  const initialTheme = (savedTheme === 'light' || savedTheme === 'dark')
+    ? savedTheme
+    : (systemPrefersDark === true ? 'dark' : 'light');
+  root.setAttribute('data-theme', initialTheme);
+  if (!savedTheme) localStorage.setItem('theme', initialTheme);
   const themeToggle = document.getElementById('themeToggle');
   if (themeToggle) {
     themeToggle.addEventListener('click', () => {
@@ -65,11 +73,24 @@ function initApp() {
       setLang(selected);
       updateLangButtonText();
       renderLangMenu();
+      // 更新PWA manifest
+      updatePWAManifest();
       if (window.searchResults) {
         displayResults(window.searchResults);
       }
     });
   }
+
+  // 监听 i18n 事件：语言更新与语言列表刷新
+  window.addEventListener('i18n:updated', () => {
+    updateLangButtonText();
+    renderLangMenu();
+    updatePWAManifest();
+    if (window.searchResults) displayResults(window.searchResults);
+  });
+  window.addEventListener('i18n:langs', () => {
+    renderLangMenu();
+  });
 
   // 点击展开/收起菜单（移除悬停交互，避免误触导致立即关闭）
   if (langDropdown && langToggle && langMenu) {

@@ -1661,7 +1661,7 @@ body {
   top: 4.5rem; /* 主题按钮下方 */
   right: 2rem;
   background: none;
-  border: 1px solid var(--border-primary);
+  border: 0px solid var(--border-primary);
   color: var(--text-primary);
   cursor: pointer;
   padding: 0.4rem 0.6rem;
@@ -1686,7 +1686,7 @@ body {
   right: 0;
   min-width: 140px;
   background: var(--bg-primary);
-  border: 1px solid var(--border-primary);
+  border: 0px solid var(--border-primary);
   border-radius: 12px;
   box-shadow: 0 8px 24px var(--shadow-secondary);
   padding: 0.25rem;
