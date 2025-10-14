@@ -30,13 +30,7 @@
 - Accessible components with keyboard navigation and ARIA labels.
 
 <div align="center">
-
-<img src="docs/screenshots/stranger-home-zh.png" alt="Stranger 首页（中文界面）" width="720" />
-
-<br/>
-
 <img src="docs/screenshots/stranger-home-en.png" alt="Stranger Home (English UI)" width="720" />
-
 </div>
 
 ## Architecture

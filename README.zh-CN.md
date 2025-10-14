@@ -27,13 +27,7 @@
 ## 截图与体验
 
 <div align="center">
-
 <img src="docs/screenshots/stranger-home-zh.png" alt="Stranger 首页（中文界面）" width="720" />
-
-<br/>
-
-<img src="docs/screenshots/stranger-home-en.png" alt="Stranger Home（英文界面）" width="720" />
-
 </div>
 
 ## 架构
