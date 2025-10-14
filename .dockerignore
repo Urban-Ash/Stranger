@@ -1,0 +1,17 @@
+# Ignore files not needed in Docker image
+.git
+.gitignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.example
+app.log
+node_modules/
+*.swp
+*.swo
+.DS_Store
+README.md
+scripts/
+config/data_source.json

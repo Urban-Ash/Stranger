@@ -1,0 +1,38 @@
+{
+  "name": "Stranger OSINT 信息检索平台",
+  "short_name": "Stranger",
+  "id": "stranger.app",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0c10",
+  "theme_color": "#4FC3F7",
+  "description": "OSINT 信息检索平台，支持离线与安装到桌面",
+  "icons": [
+    {
+      "src": "/static/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "快速搜索",
+      "short_name": "搜索",
+      "description": "打开主页并开始搜索",
+      "url": "/?action=search"
+    },
+    {
+      "name": "添加数据",
+      "short_name": "添加",
+      "description": "打开添加数据表单",
+      "url": "/?action=add"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "prefer_related_applications": false
+}

@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  stranger:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stranger
+    # 将容器 5082 映射到主机端口（读取 .env 或使用默认值）
+    ports:
+      - "${FLASK_PORT:-5082}:5082"
+    # 传入环境变量（Compose 会自动读取同目录下的 .env 用于变量替换）
+    env_file:
+      - .env
+    environment:
+      - FLASK_PORT=5082
+    restart: unless-stopped
+    # 如需持久化日志，可取消以下挂载：
+    # volumes:
+    #   - ./app.log:/app/app.log

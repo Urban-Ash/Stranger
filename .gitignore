@@ -1,0 +1,18 @@
+# Local environment files
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log
+
+# Virtual envs
+venv/
+.venv/
+ 
+# macOS Finder metadata
+.DS_Store

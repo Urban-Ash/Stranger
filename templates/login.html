@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录 - Stranger</title>
+    <!-- PWA meta -->
+    <meta name="theme-color" content="#4FC3F7">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="{{ url_for('static', filename='icons/icon.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon.svg') }}">
+    <meta name="apple-mobile-web-app-title" content="Stranger">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=4) }}">
+    <style>
+      .login-container { width: 400px; margin: 10vh auto; padding: 2.5rem; border-radius: 24px; background: var(--card); box-shadow: 0 6px 20px var(--shadow-primary); color: var(--text); }
+      .login-title { font-size: 20px; font-weight: 600; margin-bottom: 12px; text-align: center; color: var(--text); }
+      .login-field { margin-bottom: 12px; }
+      .login-field label { display:block; font-size: 13px; margin-bottom:6px; color: var(--text-secondary); }
+      .login-field input { width: 100%; padding: 10px 12px; border: 1px solid var(--border-primary); border-radius: 8px; font-size: 14px; background: var(--bg-secondary); color: var(--text-primary); }
+      .login-field input::placeholder { color: var(--text-secondary); opacity: 0.7; }
+      .login-error { color: var(--error-color); font-size: 13px; margin: 8px 0; text-align: center; }
+      .login-actions { margin-top: 2rem; display: flex;}
+      .btn-primary { width: 50%; padding: 10px 12px; border: none; border-radius: 8px; background: var(--accent-primary); color: #fff; font-weight: 600; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <!-- 顶部控制区域：主题 + 语言切换（与主页一致） -->
+    <div class="top-controls" style="position: absolute; right: 16px; top: 16px;">
+      <button class="theme-toggle" id="themeToggle" aria-label="切换主题" title="切换主题">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707M12 20v1m5.657-3.343l-.707.707M6.05 18.364l-.707.707"/>
+              <circle cx="12" cy="12" r="4"/>
+          </svg>
+      </button>
+      <div class="lang-dropdown" id="langDropdown">
+        <button class="lang-toggle" id="langToggle" aria-label="切换语言" title="切换语言">
+            <span id="langToggleText">中文 / EN</span>
+            <svg class="caret" viewBox="0 0 24 24" width="16" height="16"><path d="M6 9l6 6 6-6" stroke="currentColor" fill="none"/></svg>
+        </button>
+        <ul class="lang-menu" id="langMenu" aria-label="可选择语言"></ul>
+      </div>
+    </div>
+
+    <div class="login-container" role="dialog" aria-labelledby="login-title" aria-modal="true">
+      <div class="login-title" id="login-title">登录 Stranger</div>
+      
+      {% if error or error_key %}
+        <div class="login-error" id="loginError" data-error-key="{{ error_key or 'login_error_invalid_credentials' }}">{{ error or '' }}</div>
+      {% endif %}
+      <form method="post" action="/login" autocomplete="off">
+        <div class="login-field">
+          <label for="username" id="labelUsername">用户名</label>
+          <input id="username" name="username" type="text" required autofocus placeholder="用户名" />
+        </div>
+        <div class="login-field">
+          <label for="password" id="labelPassword">密码</label>
+          <input id="password" name="password" type="password" required placeholder="密码" />
+        </div>
+        <div class="login-actions">
+          <button type="submit" class="btn-primary" id="loginSubmit">登录</button>
+        </div>
+      </form>
+      
+    </div>
+    <script type="module" src="{{ url_for('static', filename='main.js', v=4) }}"></script>
+  </body>
+  </html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stranger - 信息搜索</title>
+    <!-- PWA meta -->
+    <meta name="theme-color" content="#4FC3F7">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="{{ url_for('static', filename='icons/icon.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon.svg') }}">
+    <meta name="apple-mobile-web-app-title" content="Stranger">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=4) }}">
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1 id="strangerTitle" class="clickable-title">Stranger</h1>
+            <p class="subtitle">OSINT信息检索平台</p>
+        </div>
+        <!-- 顶部控制区域：主题 + 语言切换 -->
+        <div class="top-controls">
+            <button class="theme-toggle" id="themeToggle" aria-label="切换主题" title="切换主题">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707M12 20v1m5.657-3.343l-.707.707M6.05 18.364l-.707.707"/>
+                    <circle cx="12" cy="12" r="4"/>
+                </svg>
+            </button>
+            <div class="lang-dropdown" id="langDropdown">
+              <button class="lang-toggle" id="langToggle" aria-label="切换语言" title="切换语言">
+                  <span id="langToggleText">中文 / EN</span>
+                  <svg class="caret" viewBox="0 0 24 24" width="16" height="16"><path d="M6 9l6 6 6-6" stroke="currentColor" fill="none"/></svg>
+              </button>
+              <ul class="lang-menu" id="langMenu" aria-label="可选择语言">
+                <!-- 语言项将由 JS 动态填充 -->
+              </ul>
+            </div>
+        </div>
+        
+        <div class="search-container">
+            <button class="search-button" id="searchButton">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </button>
+            <input type="text" class="search-box" id="searchInput" placeholder="输入关键词..." autocomplete="off">
+        </div>
+        <!-- 匹配模式切换按钮：模糊 / 精确 -->
+        <!-- 匹配模式切换已移除：后端统一精确匹配 -->
+        
+        <div class="results-container" id="resultsContainer">
+            <div class="loading" id="loadingIndicator">
+                <div class="loading-spinner"></div>
+                <p>搜索中...</p>
+            </div>
+            
+        </div>
+        <div id="resultsContent"></div>
+        <!-- 移动端卡片浏览模式 -->
+        <div class="mobile-card-view" id="mobileCardView" style="display: none;">
+            <!-- 顶部导航栏 -->
+            <div class="mobile-nav">
+                <button class="back-to-home" id="backToHome">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+                <div class="card-counter" id="cardCounter">1 / 1</div>
+            </div>
+            
+            <!-- 卡片容器 -->
+            <div class="card-container" id="cardContainer">
+                <div class="card-wrapper" id="cardWrapper">
+                    <!-- 卡片将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- 添加数据弹窗 -->
+        <div class="modal" id="addModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>添加新数据</h2>
+                    <button class="close-btn" id="closeModal">&times;</button>
+                </div>
+                <form id="addDataForm" class="add-form">
+                    <div id="addStatus" class="form-status"></div>
+                    <div class="form-group">
+                        <label for="addName">姓名</label>
+                        <input type="text" id="addName" name="name" placeholder="请输入姓名">
+                    </div>
+                    <div class="form-group">
+                        <label for="addIdCard">身份证号</label>
+                        <input type="text" id="addIdCard" name="id_card" placeholder="请输入身份证号">
+                    </div>
+                    <div class="form-group">
+                        <label for="addPhones">手机号</label>
+                        <input type="tel" id="addPhones" name="phones" placeholder="请输入手机号，多个用逗号分隔" inputmode="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label for="addQqs">QQ号</label>
+                        <input type="text" id="addQqs" name="qqs" placeholder="请输入QQ号，多个用逗号分隔" inputmode="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label for="addWeiboUid">微博UID</label>
+                        <input type="text" id="addWeiboUid" name="weibo_uid" placeholder="请输入微博UID" inputmode="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label for="addEmail">邮箱</label>
+                        <input type="email" id="addEmail" name="email" placeholder="请输入邮箱地址">
+                    </div>
+                    <div class="form-group">
+                        <label for="addGender">性别</label>
+                        <select id="addGender" name="gender">
+                            <option value="">请选择性别</option>
+                            <option value="男">男</option>
+                            <option value="女">女</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="addBirthDate">出生日期</label>
+                        <input type="date" id="addBirthDate" name="birth_date">
+                    </div>
+                    <div class="form-group">
+                        <label for="addLocation">地址</label>
+                        <input type="text" id="addLocation" name="location" placeholder="请输入地址">
+                    </div>
+                    <div class="form-group">
+                        <label for="addCompany">公司</label>
+                        <input type="text" id="addCompany" name="company" placeholder="请输入公司名称">
+                    </div>
+                    <div class="form-group">
+                        <label for="addPosition">职位</label>
+                        <input type="text" id="addPosition" name="position" placeholder="请输入职位">
+                    </div>
+                    <div class="form-group">
+                        <label for="addIndustry">行业</label>
+                        <input type="text" id="addIndustry" name="industry" placeholder="请输入行业">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="cancel-btn" id="cancelAdd">取消</button>
+                        <button type="submit" class="submit-btn">添加数据</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 编辑数据弹窗 -->
+        <div class="modal" id="editModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>编辑数据</h2>
+                    <button class="close-btn" id="closeEditModal">&times;</button>
+                </div>
+                <form id="editDataForm" class="edit-form">
+                    <div id="editStatus" class="form-status"></div>
+                    <div class="form-group">
+                        <label for="editName">姓名</label>
+                        <input type="text" id="editName" name="name" placeholder="请输入姓名" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="editIdCard">身份证号</label>
+                        <input type="text" id="editIdCard" name="id_card" placeholder="请输入身份证号" inputmode="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label for="editPhones">手机号</label>
+                        <input type="tel" id="editPhones" name="phones" placeholder="请输入手机号，多个用逗号分隔" inputmode="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label for="editQqs">QQ号</label>
+                        <input type="text" id="editQqs" name="qqs" placeholder="请输入QQ号，多个用逗号分隔" inputmode="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label for="editWeiboUid">微博UID</label>
+                        <input type="text" id="editWeiboUid" name="weibo_uid" placeholder="请输入微博UID" inputmode="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label for="editEmail">邮箱</label>
+                        <input type="email" id="editEmail" name="email" placeholder="请输入邮箱地址">
+                    </div>
+                    <div class="form-group">
+                        <label for="editGender">性别</label>
+                        <select id="editGender" name="gender">
+                            <option value="">请选择性别</option>
+                            <option value="男">男</option>
+                            <option value="女">女</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editBirthDate">出生日期</label>
+                        <input type="date" id="editBirthDate" name="birth_date">
+                    </div>
+                    <div class="form-group">
+                        <label for="editLocation">地址</label>
+                        <input type="text" id="editLocation" name="location" placeholder="请输入地址">
+                    </div>
+                    <div class="form-group">
+                        <label for="editCompany">公司</label>
+                        <input type="text" id="editCompany" name="company" placeholder="请输入公司名称">
+                    </div>
+                    <div class="form-group">
+                        <label for="editPosition">职位</label>
+                        <input type="text" id="editPosition" name="position" placeholder="请输入职位">
+                    </div>
+                    <div class="form-group">
+                        <label for="editIndustry">行业</label>
+                        <input type="text" id="editIndustry" name="industry" placeholder="请输入行业">
+                    </div>
+                    <div class="form-group">
+                        <label for="editCustomInfo">其他信息</label>
+                        <textarea id="editCustomInfo" name="custom_info" placeholder="请输入其他自定义信息" rows="3"></textarea>
+                        <small class="form-hint">可以添加任何其他相关信息，如备注、特殊标记等</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDataSources">数据来源</label>
+                        <input type="text" id="editDataSources" name="data_sources" placeholder="添加新的数据来源（用逗号分隔）">
+                        <small class="form-hint">只会添加新的数据来源，不会替换现有数据</small>
+                        
+                        <!-- 现有数据来源列表 -->
+                        <div class="existing-sources" id="existingSources">
+                            <label>现有数据来源：</label>
+                            <div class="sources-list" id="sourcesList">
+                                <!-- 动态生成的数据来源项目 -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="delete-btn" id="deleteRecord">删除记录</button>
+                        <div class="action-buttons-right">
+                            <button type="button" class="cancel-btn" id="cancelEdit">取消</button>
+                            <button type="submit" class="submit-btn">保存修改</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 来源详情弹窗 -->
+        <div class="modal" id="sourceModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="sourceModalTitle">来源详情</h2>
+                    <button class="close-btn" id="closeSourceModal">&times;</button>
+                </div>
+                <div class="add-form" id="sourceDetailBody"></div>
+            </div>
+        </div>
+        <script type="module" src="{{ url_for('static', filename='main.js', v=4) }}"></script>
+    </div>
+</body>
+</html>

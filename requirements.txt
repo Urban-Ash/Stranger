@@ -1,0 +1,13 @@
+Flask==2.3.3
+flask-cors==4.0.0
+flask-limiter==3.5.0
+Flask-Compress==1.13
+psycopg2-binary==2.9.9
+python-dotenv==1.0.0
+openai>=1.30.0
+
+# 开发/脚本依赖（非运行时必需）
+requests==2.31.0
+
+# 生产部署建议（可选）
+gunicorn==21.2.0
