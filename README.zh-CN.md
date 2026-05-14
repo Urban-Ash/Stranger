@@ -2,7 +2,6 @@
 
 <h1>Stranger · OSINT 信息检索平台</h1>
 
-<img src="https://img.shields.io/badge/AI%20Authored-100%25-blueviolet?style=flat" alt="纯 AI 编写 100%" />
 <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python" alt="Python" />
 <img src="https://img.shields.io/badge/Flask-2.x-000?logo=flask" alt="Flask" />
 <img src="https://img.shields.io/badge/PostgreSQL-13%2B-336791?logo=postgresql" alt="PostgreSQL" />
